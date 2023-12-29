@@ -1,0 +1,64 @@
+FROM opensuse/tumbleweed:latest
+
+# To activate GPU support within a Docker container, you typically need to set a few environment variables
+# and ensure that you have the necessary NVIDIA drivers and Docker configurations in place.
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin
+USER root
+WORKDIR /usr/src
+
+# Install dependencis
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends git-core \
+    curl libcurl4 wget unzip gcc-c++ \
+    readline-devel sqlite3-devel libbz2-devel libopenssl-devel \
+    python3-devel python3-ldap \
+    python311-devel
+
+# Install kernel-devel
+RUN zypper --non-interactive in --no-recommends kernel-devel
+
+# add cuda repo
+RUN zypper ar --no-gpgcheck https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo
+RUN zypper --gpg-auto-import-keys refresh
+
+
+# CHANGE DEPENDING ON CUDA VERSION
+ENV CUDA_VERSION=12.2.0
+ENV CUDA_HOME=/usr/local/cuda-12.2
+
+# Install cuda libs
+RUN zypper --non-interactive in --no-recommends cuda-minimal-build-12-2 \
+    cuda-toolkit-12-2-config-common \
+    cuda-toolkit-12-config-common \
+    cuda-toolkit-config-common \
+    cuda-nvcc-12-2 \
+    cuda-cudart-12-2 \
+    cuda-cudart-devel-12-2 \
+    libcusparse-12-2
+
+# Cleanup
+RUN zypper clean -a
+
+# Test
+RUN nvidia-smi
+RUN nvcc -V
+
+# # Check all packages is needed for a cuda image
+# RUN pip3 install --upgrade pip setuptools && \
+#     pip3 install torch && \
+#     pip3 install numpy scipy bitsandbytes
+# # Test bitsandbytes is COMPILED_WITH_CUDA
+# RUN python -m bitsandbytes
+# # Test cuda is available
+# RUN python -c "import torch;print(torch.__version__);print(torch.cuda.is_available())"
+
+# # Error when missing libraries:
+# RUN find / -name 'libcudart.so*'
+# RUN zypper se libcudart
+
+# Set the default command to start a shell
+CMD ["/bin/bash"]

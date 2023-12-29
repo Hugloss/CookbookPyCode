@@ -1,0 +1,85 @@
+# Create a custom gpu docker file when normal not working like:
+# - tensorflow/tensorflow:latest-gpu-jupyter
+# - mltooling/ml-workspace:latest
+#
+# 1. Check installer repo is right
+# https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=OpenSUSE&target_version=15&target_type=rpm_local
+# 2. Build
+# docker build --build-arg cuda_lib=0 -t my_gpu_img .
+# 3. Test Nvidia-smi
+# docker run --rm --gpus all my_gpu_img nvidia-smi
+# 4. Test NVCC
+# docker run --rm --gpus all my_gpu_img nvcc -V
+
+
+FROM opensuse/tumbleweed:latest
+
+# To activate GPU support within a Docker container, you typically need to set a few environment variables
+# and ensure that you have the necessary NVIDIA drivers and Docker configurations in place.
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin
+
+# Install needed packages
+USER root
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends wget
+
+# Install kernel-devel
+RUN uname -r
+# 1. Default
+RUN zypper --non-interactive in --no-recommends kernel-devel-$(uname -r)
+# 2. Can work when default fails
+#RUN zypper --non-interactive in --no-recommends kernel-devel
+
+
+ARG cuda_lib=0
+# If Cuda libs is needed
+RUN if [ $cuda_lib -gt 0 ]; then \
+    # 1. do this first \
+    zypper --no-gpgcheck addrepo https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo; \
+    # 2. when internet not possible \
+    #wget https://developer.download.nvidia.com/compute/cuda/12.2.2/local_installers/cuda-repo-sles15-12-2-local-12.2.2_535.104.05-1.x86_64.rpm; \
+    #rpm -i cuda-repo-sles15-12-2-local-12.2.2_535.104.05-1.x86_64.rpm; \
+    # 3.
+    # always refresh \
+    zypper --gpg-auto-import-keys refresh; \
+else \
+    echo "Default option selected"; \
+    # Add commands for the default option here \
+fi
+
+# Check the value of cuda_lib and execute commands accordingly
+RUN if [ "$cuda_lib" = "1" ]; then \
+    # Default installation in documentation (Large ~ 8.7GB) \
+    zypper --non-interactive in --no-recommends cuda; \
+elif [ "$cuda_lib" = "2" ]; then \
+    # Installation named in earlier documentation (Medium ~ 1.5GB) \
+    zypper --non-interactive in --no-recommends cuda-drivers; \
+elif [ "$cuda_lib" = "3" ]; then \
+    # Custom installation (Large ~ 4GB) \
+    zypper --non-interactive in --no-recommends cuda-nvcc-12-2; \
+    zypper --non-interactive in --no-recommends cuda-libraries-devel-12-2; \
+elif [ "$cuda_lib" = "4" ]; then \
+    # Custom installation (Small ~ 0.2GB) \
+    zypper --non-interactive in --no-recommends cuda-nvcc-12-2; \
+    zypper --non-interactive in --no-recommends cuda-minimal-build-12-2; \
+    zypper --non-interactive in --no-recommends cuda-toolkit-12-2-config-common; \
+    zypper --non-interactive in --no-recommends cuda-toolkit-12-config-common; \
+    zypper --non-interactive in --no-recommends cuda-toolkit-config-common; \
+else \
+    echo "Default option selected"; \
+    # Add commands for the default option here \
+fi
+
+# View installed cuda packages
+#RUN zypper se cuda
+
+# Test
+RUN nvidia-smi
+RUN nvcc -V
+
+# Cleanup
+RUN zypper clean --all
