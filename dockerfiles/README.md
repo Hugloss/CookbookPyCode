@@ -12,19 +12,19 @@ To build `cuda` images using Docker, run the following command from the reposito
 1. **GPU image:** run the following command from the repository's directory:
 
    ```
-    sudo docker -f dockerfiles/Dockerfile.gpu build --build-arg cuda_lib=4 -t my_gpu_img  .
+    sudo docker build -f dockerfiles/Dockerfile.gpu --build-arg cuda_lib=4 -t my_gpu_img  .
    ```
 
 2. **Cuda 11.8 image:** run the following command from the repository's directory:
 
    ```
-    sudo docker -f dockerfiles/Dockerfile.cu11 build -t my_cu11_img  .
+	sudo docker build -f dockerfiles/Dockerfile.cu11 -t my_cu11_img  .
    ```
 
 3. **Cuda 12.2 image:** run the following command from the repository's directory:
 
    ```
-    sudo docker -f dockerfiles/Dockerfile.cu12 build -t my_cu12_img  .
+	sudo docker build -f dockerfiles/Dockerfile.cu12 -t my_cu12_img  .
    ```
 
 
