@@ -87,16 +87,46 @@ sudo docker exec -it [CONTAINER_ID] /bin/bash
 To start a Docker image interactively, use:
 
 ```bash
+sudo docker run -it --rm [IMAGE_NAME_OR_ID] /bin/bash
+
 sudo docker run -it --entrypoint '' --rm [IMAGE_NAME_OR_ID] /bin/bash
 ```
 
-## Stopping Containers
+### Stop interacting with containers
 
-To gracefully stop a container, use the keyboard shortcut:
+To gracefully stop a container interactively, use the keyboard shortcut:
 
 ```
 Ctrl + D
 ```
+
+## Remove existing container
+
+1. **Identify the Container ID or Name.**
+
+   First, list all containers to find the ID or name of the one you want to remove:
+
+   ```bash
+   sudo docker ps -a
+   ```
+
+   This will display all containers, both running and stopped. Note down the CONTAINER ID or NAMES of the container you wish to remove.
+
+2. **Stop the Container (if it's running).**
+
+   Before you can remove a container, you must ensure it's stopped. To stop a container, use:
+
+   ```bash
+   sudo docker stop [CONTAINER_ID_OR_NAME]
+   ```
+
+3. **Remove the Container.**
+
+   Now, you can remove the container using:
+
+   ```bash
+   sudo docker rm [CONTAINER_ID_OR_NAME]
+   ```
 
 ## Docker File Cleanup
 

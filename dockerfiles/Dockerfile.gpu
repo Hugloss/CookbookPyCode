@@ -60,12 +60,16 @@ elif [ "$cuda_lib" = "2" ]; then \
     zypper --non-interactive in --no-recommends cuda-drivers; \
 elif [ "$cuda_lib" = "3" ]; then \
     # Custom installation (Large ~ 4GB) \
-    zypper --non-interactive in --no-recommends cuda-nvcc-12-2; \
+    # install cusparse, cublas, cusolver
+    zypper --non-interactive in --no-recommends cuda-minimal-build-12-2; \
+    zypper --non-interactive in --no-recommends cuda-libraries-12-2; \
     zypper --non-interactive in --no-recommends cuda-libraries-devel-12-2; \
 elif [ "$cuda_lib" = "4" ]; then \
-    # Custom installation (Small ~ 0.2GB) \
-    zypper --non-interactive in --no-recommends cuda-nvcc-12-2; \
+    # Custom installation (Small ~ 0.201GB) \
     zypper --non-interactive in --no-recommends cuda-minimal-build-12-2; \
+elif [ "$cuda_lib" = "5" ]; then \
+    # Custom installation (Small ~ 0.200GB) \
+    zypper --non-interactive in --no-recommends cuda-nvcc-12-2; \
     zypper --non-interactive in --no-recommends cuda-toolkit-12-2-config-common; \
     zypper --non-interactive in --no-recommends cuda-toolkit-12-config-common; \
     zypper --non-interactive in --no-recommends cuda-toolkit-config-common; \
