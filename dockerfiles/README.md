@@ -12,7 +12,7 @@ To build `cuda` images using Docker, run the following command from the reposito
 1. **GPU image:** run the following command from the repository's directory:
 
    ```
-    sudo docker build -f dockerfiles/Dockerfile.gpu --build-arg cuda_lib=4 -t my_gpu_img  .
+    sudo docker build -f dockerfiles/Dockerfile.gpu --build-arg cuda_lib=5 -t my_gpu_img  .
    ```
 
 2. **Cuda 11.8 image:** run the following command from the repository's directory:
@@ -27,5 +27,10 @@ To build `cuda` images using Docker, run the following command from the reposito
 	sudo docker build -f dockerfiles/Dockerfile.cu12 -t my_cu12_img  .
    ```
 
+4. **Custom text-generation-interference image:** run the following command from the repository's directory:
+
+   ```
+	sudo docker build -f dockerfiles/Dockerfile.tgi -t my_tgi_img  .
+   ```
 
 By following these steps, you can easily start and stop the `cuda` images using Docker from the root directory of the `CookbookPyCode` repository.

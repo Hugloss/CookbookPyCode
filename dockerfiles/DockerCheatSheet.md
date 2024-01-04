@@ -130,35 +130,74 @@ Ctrl + D
 
 ## Docker File Cleanup
 
+These commands free up disk space by removing untagged and unreferenced images.
+
 ### Removing Images by ID
 
 ```bash
 sudo docker rmi [IMAGE_ID]
 ```
 
-### Removing Dangling Images
+### Removing unreferenced Images
 
 Clean up dangling and unused images using the following commands:
 
-1. Cleanup dangling images.
+### Cleanup dangling images.
 
 ```bash
 sudo docker image prune -f
 ```
 
-2. Cleanup unused images and dangling ones.
+**WARNING!** This command will remove:
+
+- All dangling images.
+
+
+### Cleanup unused images and dangling ones.
 
 ```bash
 sudo docker image prune --all -f
 ```
 
-3. Via lookup.
+**WARNING!** This command will remove:
+
+- All images without at least one container associated with them
+
+
+### List dangling images
+
+To get the list of dangling images, you can use the following command:
 
 ```bash
-sudo docker rmi $(sudo docker images -qf "dangling=true")
+sudo docker images -f "dangling=true"
 ```
 
-These commands free up disk space by removing untagged and unreferenced images.
+## Docker System Cleanup
+
+This provides clear instructions on how to perform Docker system cleanup and obtain a list of exited containers. These commands free up disk space by removing unused containers and images.
+
+
+### Docker System Prune
+
+To clean up all unused containers in one command, you can use the following Docker command:
+
+```bash
+docker system prune --all -f
+```
+
+**WARNING!** This command will remove:
+
+- All stopped containers
+- All volumes not used by at least one container
+- All images without at least one container associated with them
+
+### List Exited Containers
+
+To get the list of exited containers, you can use the following command:
+
+```bash
+sudo docker ps -a -f status=exited
+```
 
 ---
 

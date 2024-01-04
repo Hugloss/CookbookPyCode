@@ -32,12 +32,6 @@ ENV CUDA_HOME=/usr/local/cuda-11.8
 
 # Install cuda libs
 RUN zypper --non-interactive in --no-recommends cuda-minimal-build-11-8 \
-    cuda-toolkit-11-8-config-common \
-    cuda-toolkit-11-config-common \
-    cuda-toolkit-config-common \
-    cuda-nvcc-11-8 \
-    cuda-cudart-11-8 \
-    cuda-cudart-devel-11-8 \
     libcusparse-11-8
 
 # Cleanup
@@ -47,12 +41,19 @@ RUN zypper clean -a
 RUN nvidia-smi
 RUN nvcc -V
 
-# # Check all packages is needed for a cuda image
-# RUN pip3 install --upgrade pip setuptools && \
-#     pip3 install torch --index-url https://download.pytorch.org/whl/cu118 --no-cache-dir && \
-#     pip3 install numpy scipy bitsandbytes
+# # Create venv
+# RUN python3 -m venv ~/.local --system-site-packages
+# RUN source ~/.local/bin/activate
+#
+# # Install python packages
+# RUN ~/.local/bin/pip install torch --index-url https://download.pytorch.org/whl/cu118 --no-cache-dir && \
+#     ~/.local/bin/pip install --upgrade --no-cache-dir setuptools pip wheel \
+#         packaging ninja \
+#         scipy bitsandbytes
+#
 # # Test bitsandbytes is COMPILED_WITH_CUDA
-# RUN python -m bitsandbytes
+# RUN python3 -m bitsandbytes
+#
 # # Test cuda is available
 # RUN python -c "import torch;print(torch.__version__);print(torch.cuda.is_available())"
 

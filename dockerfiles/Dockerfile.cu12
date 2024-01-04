@@ -9,6 +9,9 @@ ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin
 USER root
 WORKDIR /usr/src
 
+# Pyhton version
+RUN python3 -V
+
 # Install dependencis
 RUN zypper -n up && \
     zypper --non-interactive in --no-recommends -t pattern devel_basis && \
@@ -32,12 +35,6 @@ ENV CUDA_HOME=/usr/local/cuda-12.2
 
 # Install cuda libs
 RUN zypper --non-interactive in --no-recommends cuda-minimal-build-12-2 \
-    cuda-toolkit-12-2-config-common \
-    cuda-toolkit-12-config-common \
-    cuda-toolkit-config-common \
-    cuda-nvcc-12-2 \
-    cuda-cudart-12-2 \
-    cuda-cudart-devel-12-2 \
     libcusparse-12-2
 
 # Cleanup
@@ -47,14 +44,20 @@ RUN zypper clean -a
 RUN nvidia-smi
 RUN nvcc -V
 
-# # Check all packages is needed for a cuda image
-# RUN pip3 install --upgrade pip setuptools && \
-#     pip3 install torch && \
-#     pip3 install numpy scipy bitsandbytes
+# # Create venv
+# RUN python3 -m venv ~/.local --system-site-packages
+# RUN source ~/.local/bin/activate
+
+# # Install python packages
+# RUN ~/.local/bin/pip install --upgrade --no-cache-dir setuptools pip wheel \
+#         packaging ninja \
+#         torch scipy bitsandbytes
+#
 # # Test bitsandbytes is COMPILED_WITH_CUDA
-# RUN python -m bitsandbytes
+# RUN python3 -m bitsandbytes
+#
 # # Test cuda is available
-# RUN python -c "import torch;print(torch.__version__);print(torch.cuda.is_available())"
+# RUN python3 -c "import torch;print(torch.__version__);print(torch.cuda.is_available())"
 
 # # Error when missing libraries:
 # RUN find / -name 'libcudart.so*'

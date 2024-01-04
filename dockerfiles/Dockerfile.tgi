@@ -1,0 +1,92 @@
+FROM opensuse/tumbleweed:latest
+
+
+# To activate GPU support within a Docker container, you typically need to set a few environment variables
+# and ensure that you have the necessary NVIDIA drivers and Docker configurations in place.
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+USER root
+WORKDIR /usr/src
+
+# Install dependencis
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends git-core \
+    curl libcurl4 wget unzip gcc-c++ \
+    readline-devel sqlite3-devel libbz2-devel libopenssl-devel \
+    python3-devel python3-ldap \
+    python311-devel
+
+# Install kernel-devel
+RUN zypper --non-interactive in --no-recommends kernel-devel
+
+# add cuda repo
+RUN zypper ar --no-gpgcheck https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo
+RUN zypper --gpg-auto-import-keys refresh
+
+# CHANGE DEPENDING ON CUDA VERSION
+ENV CUDA_VERSION=11.8.0
+ENV CUDA_HOME=/usr/local/cuda-11.8
+
+# Install cuda libs
+RUN zypper --non-interactive in --no-recommends libglut3 libX11-devel libXi6 libXmu6 libGLU1 make \
+    cuda-minimal-build-11-8 \
+    cuda-libraries-11-8 \
+    cuda-libraries-devel-11-8
+
+# Install python packages
+RUN pip install torch --index-url https://download.pytorch.org/whl/cu118 --no-cache-dir && \
+    pip install --upgrade --no-cache-dir setuptools pip wheel \
+        packaging ninja \
+        scipy bitsandbytes \
+        einops accelerate peft
+
+# Install RUST
+RUN zypper --non-interactive in --no-recommends rustup && \
+	rustup default stable && \
+	cargo version
+
+# Install protoc
+RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
+    curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
+    unzip -o $PROTOC_ZIP -d /usr/local bin/protoc && \
+    unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
+    rm -f $PROTOC_ZIP
+
+
+# Install text-generation-interference
+ARG MAX_JOBS=8
+RUN git clone https://github.com/huggingface/text-generation-inference.git && \
+    cd text-generation-inference && \
+    make install
+
+# Install tgi requirements
+RUN cd text-generation-inference && \
+    cd server && pip install -r requirements_cuda.txt
+
+# Install tgi flash attention
+RUN cd text-generation-inference && \
+    cd server && make -f Makefile-flash-att-v2 install-flash-attention-v2-cuda
+
+# Install router
+RUN cp /usr/src/text-generation-inference/target/release/text-generation-router /usr/local/bin/text-generation-router
+# Install launcher
+RUN cp /usr/src/text-generation-inference/target/release/text-generation-launcher /usr/local/bin/text-generation-launcher
+
+# Text Generation Inference base env
+ENV HUGGINGFACE_HUB_CACHE=/data \
+    HF_HUB_ENABLE_HF_TRANSFER=1 \
+    MODEL_ID=google/flan-t5-small \
+    PORT=7000
+
+
+EXPOSE 7860
+EXPOSE 5000
+EXPOSE 5005
+EXPOSE 7000
+
+
+ENTRYPOINT ["text-generation-launcher"]
+CMD ["--json-output"]
