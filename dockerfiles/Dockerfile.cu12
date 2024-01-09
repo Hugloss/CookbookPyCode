@@ -9,17 +9,20 @@ ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin
 USER root
 WORKDIR /usr/src
 
-# Pyhton version
-RUN python3 -V
-
 # Install dependencis
 RUN zypper -n up && \
     zypper --non-interactive in --no-recommends -t pattern devel_basis && \
     zypper --non-interactive in --no-recommends git-core \
-    curl libcurl4 wget unzip gcc-c++ \
+    curl libcurl4 wget unzip make gcc gcc-c++ \
     readline-devel sqlite3-devel libbz2-devel libopenssl-devel \
+    libpango-1_0-0 libharfbuzz0 libgthread-2_0-0 \
+    zlib-devel libffi-devel \
+    libjpeg-turbo openjpeg2 openjpeg2-devel \
     python3-devel python3-ldap \
     python311-devel
+
+# Pyhton version
+RUN python3 -V
 
 # Install kernel-devel
 RUN zypper --non-interactive in --no-recommends kernel-devel
@@ -35,7 +38,8 @@ ENV CUDA_HOME=/usr/local/cuda-12.2
 
 # Install cuda libs
 RUN zypper --non-interactive in --no-recommends cuda-minimal-build-12-2 \
-    libcusparse-12-2
+    libcusparse-12-2 \
+    libnvjitlink-12-2
 
 # Cleanup
 RUN zypper clean -a
@@ -49,9 +53,10 @@ RUN nvcc -V
 # RUN source ~/.local/bin/activate
 
 # # Install python packages
-# RUN ~/.local/bin/pip install --upgrade --no-cache-dir setuptools pip wheel \
+# RUN ~/.local/bin/pip install torch --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir && \
+#     ~/.local/bin/pip install --upgrade --no-cache-dir setuptools pip wheel requests \
 #         packaging ninja \
-#         torch scipy bitsandbytes
+#         scipy bitsandbytes
 #
 # # Test bitsandbytes is COMPILED_WITH_CUDA
 # RUN python3 -m bitsandbytes

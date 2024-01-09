@@ -72,6 +72,12 @@ To build a local image, use:
 sudo docker build -t CUSTOM_IMAGE_NAME .
 ```
 
+when build another dockerfile with CUSTOM_DOCKERFILE_NAME
+
+```bash
+sudo docker build -f CUSTOM_DOCKERFILE_NAME -t CUSTOM_IMAGE_NAME  .
+```
+
 ## Interacting with Containers
 
 ### Starting a Shell in a Running Container
