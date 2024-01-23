@@ -3,6 +3,7 @@ FROM opensuse/leap:latest
 RUN zypper --no-gpg-checks --non-interactive in vi wget libgfortran4
 
 # Install R
+# https://docs.posit.co/resources/install-r/#create-a-symlink-to-r
 ENV R_VERSION=4.3.2
 RUN curl -O https://cdn.rstudio.com/r/opensuse-155/pkgs/R-${R_VERSION}-1-1.x86_64.rpm
 RUN zypper --no-gpg-checks --non-interactive in R-${R_VERSION}-1-1.x86_64.rpm
@@ -12,6 +13,7 @@ RUN ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript
 RUN R --version
 
 # Install Rstudio-server
+# https://posit.co/download/rstudio-server/
 RUN wget https://download2.rstudio.org/server/opensuse15/x86_64/rstudio-server-2023.12.0-369-x86_64.rpm
 RUN zypper --non-interactive --no-gpg-checks install rstudio-server-2023.12.0-369-x86_64.rpm
 
