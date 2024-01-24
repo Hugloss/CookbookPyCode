@@ -1,5 +1,6 @@
 FROM opensuse/leap:latest
 
+# https://docs.posit.co/resources/install-r-source/#install-required-dependencies
 RUN zypper --no-gpg-checks --non-interactive in vi wget libgfortran4
 
 # Install R
@@ -26,5 +27,13 @@ RUN set -e && useradd -m -d /home/rstudio -g rstudio-server rstudio && \
 RUN R --no-echo --no-restore --no-save -e "install.packages('R.utils', repos='https://cloud.r-project.org')"
 
 EXPOSE 8787
+
+# change default dir
+ENV EDITOR_FOCUS_DIR "/home/rstudio/workspaces"
+RUN mkdir -p "$EDITOR_FOCUS_DIR"
+WORKDIR "$EDITOR_FOCUS_DIR"
+# change permission for dir
+RUN chmod -R 777 /home/rstudio/
+
 # start server without login
 ENTRYPOINT ["/usr/lib/rstudio-server/bin/rserver",  "--server-daemonize=0", "--server-app-armor-enabled=0", "--auth-none=1", "--auth-validate-users=0"]
