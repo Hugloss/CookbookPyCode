@@ -207,4 +207,6 @@ sudo docker ps -a -f status=exited
 
 ---
 
-- [Docker Cheatsheet](https://dockerlabs.collabnix.com/docker/cheatsheet/)
+- [Docker Cheatsheet][def]
+
+[def]: https://dockerlabs.collabnix.com/docker/cheatsheet/
