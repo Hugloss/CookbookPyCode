@@ -1,0 +1,37 @@
+#
+# https://github.com/huggingface/chat-ui
+# https://medium.com/@dminhk/how-to-run-chat-ui-and-llama-model-on-amazon-ec2-e3733463460f
+#
+# Use the official openSUSE image as the base
+FROM opensuse/tumbleweed:latest
+
+# Set the working directory
+WORKDIR /app
+
+# Update packages and install Node.js
+RUN zypper refresh && \
+    zypper --non-interactive in --no-recommends \
+    git \
+    nodejs \
+    npm
+
+# Clone the repository
+RUN git clone https://github.com/huggingface/chat-ui /chat-ui
+
+# Install project dependencies
+RUN cd /chat-ui && \
+    npm install
+
+# Change the working directory
+WORKDIR /chat-ui
+
+# Copy the .env file from your project folder
+COPY .env.chatui.local ./.env.local
+
+# Expose the port the app runs on
+EXPOSE 3000
+EXPOSE 5173
+
+# Command to run the app
+#CMD ["npm", "run", "dev"]
+CMD ["npm", "run", "dev", "--", "--host"]

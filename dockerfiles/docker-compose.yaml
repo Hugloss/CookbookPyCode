@@ -1,0 +1,36 @@
+version: "2.3"
+services:
+  # Huggingface Interfaces
+  hf-tgi-chat-ui:
+    build:
+      dockerfile: Dockerfile.hf_tgi_chat_ui
+    ports:
+      - 5173:5173
+    depends_on:
+      - mongodb
+  mongodb:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo_data:/data
+  hf-tgi-chat:
+    image: ghcr.io/huggingface/text-generation-inference:latest
+    runtime: nvidia
+    env_file: ./.env.tgi
+    volumes:
+      - ../.cache/hf/:/hf
+    ports:
+      - 7000:80
+    environment:
+      - HF_HOME=/hf
+      - HUGGINGFACE_HUB_CACHE=/hf/hub
+      - HF_TOKEN=
+      - HUGGING_FACE_HUB_TOKEN=
+      - HF_HUB_OFFLINE=1
+      - TRANSFORMERS_OFFLINE=1
+      #- QUANTIZE=eetq
+      #- QUANTIZE=bitsandbytes
+      #- NUM_SHARD=2  # tensor parallelism for large models (aka sharding)
+      - MODEL_ID=google/flan-t5-small
+    restart: unless-stopped
