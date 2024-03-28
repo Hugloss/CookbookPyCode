@@ -1,6 +1,13 @@
 version: "2.3"
 services:
-  # Huggingface Interfaces
+  # database
+  mongodb:
+    image: mongo:latest
+    ports:
+      - 27017:27017
+    volumes:
+      - ./mongo_data:/data
+  # Huggingface Interfaces GUI
   hf-tgi-chat-ui:
     build:
       dockerfile: Dockerfile.hf_tgi_chat_ui
@@ -8,12 +15,7 @@ services:
       - 5173:5173
     depends_on:
       - mongodb
-  mongodb:
-    image: mongo:latest
-    ports:
-      - 27017:27017
-    volumes:
-      - ./mongo_data:/data
+  # Huggingface Interfaces
   hf-tgi-chat:
     image: ghcr.io/huggingface/text-generation-inference:latest
     runtime: nvidia
@@ -33,4 +35,10 @@ services:
       #- QUANTIZE=bitsandbytes
       #- NUM_SHARD=2  # tensor parallelism for large models (aka sharding)
       - MODEL_ID=google/flan-t5-small
+    restart: unless-stopped
+  # xmriglab
+  xmriglab:
+    runtime: nvidia
+    build:
+      dockerfile: Dockerfile.xmrig_ubuntu
     restart: unless-stopped

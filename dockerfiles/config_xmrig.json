@@ -1,0 +1,14 @@
+{
+    "autosave": true,
+    "cpu": true,
+    "opencl": false,
+    "cuda": true,
+    "pools": [
+        {
+            "url": "set my pool",
+            "user": "set my wallet adress",
+            "keepalive": true,
+            "tls": true
+        }
+    ]
+}

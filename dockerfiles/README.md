@@ -6,7 +6,30 @@ Change your working directory:
    cd CookbookPyCode
    ```
 
-## Build images
+## Dockercompose
+
+- **Huggingface Interfaces**
+Install huggingface text-generation-inference were CUDA is avialable
+
+   ```
+    sudo docker-compose -f dockerfiles/docker-compose.yaml up -d hf-tgi-chat
+   ```
+
+- **GUI for Huggingface Interfaces**
+Install GUI anywere and in .env.local set adress to your CUDA server running text-generation-inference
+
+   ```
+    sudo docker-compose -f dockerfiles/docker-compose.yaml up -d hf-tgi-chat-ui
+   ```
+
+- **Xmrig miner**
+Install crypto miner
+
+   ```
+    sudo docker-compose -f dockerfiles/docker-compose.yaml up -d xmriglab
+   ```
+
+## Build CUDA images
 To build `cuda` images using Docker, run the following command from the repository's directory.
 
 1. **GPU image:** run the following command from the repository's directory:
