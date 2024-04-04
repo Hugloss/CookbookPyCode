@@ -56,8 +56,8 @@ services:
   xmriglab:
     runtime: nvidia
     build:
-      context: .
-      dockerfile: Dockerfile.xmrig_ubuntu
+      context: ./miners
+      dockerfile: Dockerfile.xmrig
     restart: unless-stopped
   # gminer
   gminerlab:
@@ -65,4 +65,15 @@ services:
     build:
       context: ./miners
       dockerfile: Dockerfile.gminer
+    ports:
+      - 8080:8080
+    restart: unless-stopped
+  # t-rex
+  trexlab:
+    runtime: nvidia
+    build:
+      context: ./miners
+      dockerfile: Dockerfile.trex
+    ports:
+      - 4067:4067
     restart: unless-stopped

@@ -1,17 +1,16 @@
-# https://github.com/develsoftware/GMinerRelease/releases/
-# https://github.com/thelolagemann/docker-gminer/blob/main/Dockerfile
-# https://github.com/dockminer/gminer/blob/main/Dockerfile
+# https://trex-miner.com/#download
+# https://github.com/trexminer/T-Rex
+# https://2miners.com/blog/t-rex-miner-definitive-guide/
 ARG CUDA_VERSION=12.3.2
 
 
 # Download miner software
 FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 as builder
 RUN apt-get update && apt-get install tar wget xz-utils curl -y
-ARG GMINER_VERSION=3.44
-ARG GMINER_FILENAME="gminer_3_44_linux64.tar.xz"
+ARG MINER_FILENAME="t-rex-0.26.8-linux.tar.gz"
 # Download miner
-RUN wget https://github.com/develsoftware/GMinerRelease/releases/download/${GMINER_VERSION}/${GMINER_FILENAME}
-RUN mkdir /gminer && tar -xf ${GMINER_FILENAME} -C /gminer
+RUN wget https://trex-miner.com/download/${MINER_FILENAME}
+RUN mkdir /trex-miner && tar -xf ${MINER_FILENAME} -C /trex-miner
 
 
 # CUDA miner image
@@ -22,14 +21,14 @@ RUN apt-get update && \
 # Fix Driver bug with symlink
 RUN ln -s /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
 # get miner
-COPY --from=builder /gminer /gminer
+COPY --from=builder /trex-miner /trex-miner
 # config miner
 ENV MINING_ALGO=myAlgo \
     MINING_POOL=myServer \
     WALLET_ADDRESS=myADDRESS.worker01
 
 # default port for monitoring page
-EXPOSE 8080
+EXPOSE 4067
 
 # start miner
-CMD /gminer/miner --algo "${MINING_ALGO}" --server "${MINING_POOL}" --user "${WALLET_ADDRESS}"
+CMD /trex-miner/t-rex -a "${MINING_ALGO}" -o stratum+tcp://"${MINING_POOL}" -u "${WALLET_ADDRESS}".RIG_ID -p x
