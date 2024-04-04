@@ -1,0 +1,33 @@
+# https://github.com/develsoftware/GMinerRelease/releases/
+# https://github.com/thelolagemann/docker-gminer/blob/main/Dockerfile
+# https://github.com/dockminer/gminer/blob/main/Dockerfile
+ARG CUDA_VERSION=12.3.2
+
+
+# Download gminer
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04 as builder
+RUN apt-get update && apt-get install tar wget xz-utils curl -y
+ARG GMINER_VERSION=3.44
+ARG GMINER_FILENAME="gminer_3_44_linux64.tar.xz"
+# Download miner
+RUN wget https://github.com/develsoftware/GMinerRelease/releases/download/${GMINER_VERSION}/${GMINER_FILENAME}
+RUN mkdir /gminer && tar -xf ${GMINER_FILENAME} -C /gminer
+
+
+# CUDA miner image
+FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
+# update
+RUN apt-get update && \
+    rm -rf /var/lib/apt/lists/*
+# get miner
+COPY --from=builder /gminer /gminer
+# config miner
+ENV MINING_ALGO=myAlgo \
+    MINING_POOL=myServer \
+    WALLET_ADDRESS=myADDRESS.worker01
+
+# default port for monitoring page
+EXPOSE 8080
+
+# start miner
+CMD /gminer/miner --algo "$MINING_ALGO" --server "$MINING_POOL" --user "${WALLET_ADDRESS}"
