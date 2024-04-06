@@ -1,4 +1,4 @@
-#
+# https://github.com/xmrig/xmrig
 #
 ## build xmrig
 # https://xmrig.com/docs/miner/build/ubuntu
@@ -20,6 +20,8 @@ FROM nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
 # Install dependecies
 RUN apt-get update && \
     apt-get -y install git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+# Fix Driver bug with symlink
+RUN ln -s /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/libnvidia-ml.so
 
 # Check CUDA devices
 RUN nvidia-smi
