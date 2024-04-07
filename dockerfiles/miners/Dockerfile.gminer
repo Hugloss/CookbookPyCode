@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install tar wget xz-utils curl -y
 ARG GMINER_VERSION=3.44
 ARG GMINER_FILENAME="gminer_3_44_linux64.tar.xz"
 # Download miner
-RUN wget https://github.com/develsoftware/GMinerRelease/releases/download/${GMINER_VERSION}/${GMINER_FILENAME}
+RUN wget -q https://github.com/develsoftware/GMinerRelease/releases/download/${GMINER_VERSION}/${GMINER_FILENAME}
 RUN mkdir /gminer && tar -xf ${GMINER_FILENAME} -C /gminer
 
 
@@ -25,11 +25,17 @@ RUN ln -s /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1 /usr/lib/x86_64-linux-gnu/
 COPY --from=builder /gminer /gminer
 # config miner
 ENV MINING_ALGO=myAlgo \
-    MINING_POOL=myServer \
     WALLET_ADDRESS=myADDRESS.worker01
+# setup main pool and failover pools
+ENV MINING_POOL=myServer \
+    MINING_POOL_FAILOVER1=myServer \
+    MINING_POOL_FAILOVER2=myServer
 
 # default port for monitoring page
 EXPOSE 8080
 
 # start miner
-CMD /gminer/miner --algo "${MINING_ALGO}" --server "${MINING_POOL}" --user "${WALLET_ADDRESS}"
+CMD /gminer/miner --algo "${MINING_ALGO}" \
+    --server "${MINING_POOL}"           --user "${WALLET_ADDRESS}"
+    --server "${MINING_POOL_FAILOVER1}" --user "${WALLET_ADDRESS}"
+    --server "${MINING_POOL_FAILOVER2}" --user "${WALLET_ADDRESS}"

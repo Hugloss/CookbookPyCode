@@ -62,6 +62,8 @@ docker: Error response from daemon: could not select device driver "" with capab
 ```
 **Flush changes and restart Docker** has not been returned after the installation of **NVIDIA Container Toolkit**.
 
+If that is not working, test to reinstall, uninstall and install, the nvidia-container-toolkit.
+
 ## Create CUDA Container
 Set variables in Dockerfile instead of on the `docker-run` command line:
 ```dockerfile
