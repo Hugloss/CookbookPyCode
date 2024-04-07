@@ -20,11 +20,6 @@ Extend this command, use any of this to test your miner
 ## FAQ
 - https://2miners.com/faq
 
----
-## Reference
-- https://rvn.2miners.com/help
-- https://minermore.com/docs/help/ravencoin/
-
 ## Check pools
 Overview
 - https://miningpoolstats.stream/
@@ -33,3 +28,10 @@ Overview
 - https://www.antpool.com/home
 - https://woolypooly.com/
 - https://www.poolin.com/
+
+---
+## Reference
+- https://rvn.2miners.com/help
+- https://minermore.com/docs/help/ravencoin/
+- https://www.ravenminer.com/ravencoin/howto
+- https://ravencoin.herominers.com/#how-to-mine-ravencoin-rvn
