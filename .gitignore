@@ -1,3 +1,7 @@
+# project files
+dockerfiles/miners/stratum-ping
+image_processing/yolov8n.pt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
