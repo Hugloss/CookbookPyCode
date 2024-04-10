@@ -1,5 +1,5 @@
 # run with:
-# streamlit run excel_02_streamlit.py
+# streamlit run --server.headless=false excel_02_streamlit.py
 #
 # https://discuss.streamlit.io/t/multiselect-items-displayed-as-in-a-box/50291/2
 import streamlit as st
