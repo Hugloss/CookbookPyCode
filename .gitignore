@@ -1,6 +1,9 @@
 # project files
 dockerfiles/miners/stratum-ping
 image_processing/yolov8n.pt
+image_processing/runs/
+pcap_analyze/challenges/challenge
+pcap_analyze/challenges/challenge.zip
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
