@@ -1,0 +1,10 @@
+# path: ../../datasets/Complete-Blood-Cell-Count-Dataset-Formats-master
+path: Complete-Blood-Cell-Count-Dataset-Formats-master
+train: Training
+val: Validation
+test: Testing
+nc: 3
+names:
+  0: RBC
+  1: WBC
+  2: Platelets
