@@ -10,6 +10,10 @@
 # docker run --rm --gpus all my_gpu_img nvidia-smi
 # 4. Test NVCC
 # docker run --rm --gpus all my_gpu_img nvcc -V
+#
+# Example from official
+# https://gitlab.com/nvidia/container-images/cuda/-/tree/master/dist/12.2.2?ref_type=heads
+#
 
 
 FROM opensuse/tumbleweed:latest

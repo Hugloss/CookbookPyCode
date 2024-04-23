@@ -36,6 +36,6 @@ EXPOSE 8080
 
 # start miner
 CMD /gminer/miner --algo "${MINING_ALGO}" \
-    --server "${MINING_POOL}"           --user "${WALLET_ADDRESS}"
-    --server "${MINING_POOL_FAILOVER1}" --user "${WALLET_ADDRESS}"
+    --server "${MINING_POOL}"           --user "${WALLET_ADDRESS}" \
+    --server "${MINING_POOL_FAILOVER1}" --user "${WALLET_ADDRESS}" \
     --server "${MINING_POOL_FAILOVER2}" --user "${WALLET_ADDRESS}"
