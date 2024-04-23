@@ -1,6 +1,6 @@
 # project files
 dockerfiles/miners/stratum-ping
-image_processing/yolov8n.pt
+image_processing/yolov8*
 image_processing/runs/
 image_processing/datasets/
 pcap_analyze/challenges/challenge
