@@ -1,0 +1,76 @@
+# This Dockerfile sets up an environment for running the Stable Diffusion web UI
+# using openSUSE Tumbleweed as the base image. It includes CUDA support for NVIDIA GPUs,
+# installs necessary system and Python dependencies, clones the Stable Diffusion web UI repository,
+# sets up a Python virtual environment, and configures the container for non-root execution.
+
+
+FROM opensuse/tumbleweed:latest
+
+# Set environment variables for NVIDIA GPU support
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
+ENV PATH=$PATH:/usr/local/nvidia/bin:/usr/local/cuda/bin
+
+# Add the CUDA repository
+RUN zypper ar --no-gpgcheck https://developer.download.nvidia.com/compute/cuda/repos/sles15/x86_64/cuda-sles15.repo
+RUN zypper --gpg-auto-import-keys refresh
+
+
+# Install system dependencies
+RUN zypper --non-interactive in --no-recommends \
+    wget git-core libtcmalloc4 libglvnd \
+    gawk bc libgthread-2_0-0 \
+    python3-devel python311-devel python3-sqlite3
+
+# Verify Python installation
+RUN python3 -c "import sqlite3; print(sqlite3.version)"
+
+# Extra cuda libs
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends \
+    cuda-minimal-build-12-2
+
+# Clone the stable-diffusion-webui repository
+RUN git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git /app
+
+
+# Create a virtual environment in /app/venv
+RUN python3 -m venv /app/venv
+
+# Ensure the virtual environment is used by setting the PATH
+ENV PATH="/app/venv/bin:$PATH"
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install Python dependencies
+RUN pip install --upgrade --no-cache-dir setuptools pip wheel requests
+
+# Run initial setup for Stable Diffusion web UI (without launching it)
+RUN COMMANDLINE_ARGS="--exit --xformers --skip-torch-cuda-test" python3 launch.py
+
+
+# Create noneuser with UID 1000 and GID 1000
+RUN groupadd -g 1000 noneuser && \
+    useradd -m -s /bin/bash -u 1000 -g 1000 noneuser
+
+# Set ownership and permissions
+RUN chmod -R 755 /app
+RUN chown -R noneuser /app
+
+# Add noneuser to the video group to allow CUDA device access
+RUN echo "video:x:486:noneuser" >> /etc/group
+
+# Expose port
+EXPOSE 7860
+
+### Fix bug
+RUN pip install setuptools==67
+
+# Switch to the non-root user
+USER noneuser
+
+# Set default command to run the web UI
+ENV COMMANDLINE_ARGS="--api --listen --xformers"
+CMD ["./webui.sh"]
