@@ -91,6 +91,31 @@ sudo docker run --rm --gpus all tensorflow/tensorflow:latest-gpu-jupyter python 
 ## Installing CUDA through Pip
 - [Pip Wheels](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#pip-wheels)
 
+```bash
+RUN pip install \
+    nvidia-cuda-runtime-cu12==12.1.105 \
+    nvidia-cuda-nvrtc-cu12==12.1.105 \
+    nvidia-cuda-cupti-cu12==12.1.105 \
+    nvidia-cudnn-cu12==9.1.0.70 \
+    nvidia-cublas-cu12==12.1.3.1 \
+    nvidia-cufft-cu12==11.0.2.54 \
+    nvidia-curand-cu12==10.3.2.106 \
+    nvidia-cusolver-cu12==11.4.5.107 \
+    nvidia-cusparse-cu12==12.1.0.106 \
+    nvidia-nccl-cu12==2.20.5 \
+    nvidia-nvtx-cu12==12.1.105 \
+    nvidia-nvjitlink-cu12==12.1.105
+```
+
+```bash
+find / -name 'libnccl*'
+```
+
+```bash
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.11/site-packages/nvidia/cusparse/lib:/usr/local/lib/python3.11/site-packages/nvidia/cuda_nvcc/lib:/usr/local/lib/python3.11/site-packages/nvidia/cufft/lib:/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.11/site-packages/nvidia/nccl/lib:/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.11/site-packages/nvidia/curand/lib:/usr/local/lib/python3.11/site-packages/nvidia/cusolver/lib:/usr/local/lib/python3.11/site-packages/nvidia/nvtx/lib:/usr/local/lib/python3.11/site-packages/nvidia/nvjitlink/lib:/usr/local/lib/python3.11/site-packages/nvidia/cupti/lib
+
+```
+
 ## Additional Resources
 - [GitHub Gist](https://gist.github.com/denguir/b21aa66ae7fb1089655dd9de8351a202)
 - [NVIDIA CUDA Docker Hub](https://hub.docker.com/r/nvidia/cuda)
