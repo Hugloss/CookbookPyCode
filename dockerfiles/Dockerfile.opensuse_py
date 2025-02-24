@@ -1,0 +1,17 @@
+FROM opensuse/tumbleweed:latest
+
+# Install dependencis
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends \
+    python3-devel
+
+# Ensure python and pip are globally available
+
+# Create a virtual environment in /app/venv
+RUN python3 -m venv /app/venv
+# Ensure the virtual environment is used by setting the PATH
+ENV PATH="/app/venv/bin:$PATH"
+
+# Verify installation
+RUN python --version && pip --version

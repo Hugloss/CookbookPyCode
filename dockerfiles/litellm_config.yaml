@@ -1,0 +1,3 @@
+litellm_settings:
+  drop_params: True
+  set_verbose: True

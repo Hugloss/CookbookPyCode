@@ -1,0 +1,68 @@
+FROM opensuse/tumbleweed:latest
+
+# Install dependencis
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends git-core \
+    curl libcurl4 wget unzip \
+    readline-devel sqlite3-devel libbz2-devel \
+    python3-devel \
+    python311-pip python311-devel
+
+# Install dependencies for LiteLLM
+RUN zypper --non-interactive in \
+    libopenssl-devel \
+    npm22 \
+    nodejs22-devel
+
+# Install RUST
+RUN zypper --non-interactive in --no-recommends rustup && \
+	rustup default stable && \
+	cargo version
+
+# Install protoc
+RUN PROTOC_ZIP=protoc-21.12-linux-x86_64.zip && \
+    curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v21.12/$PROTOC_ZIP && \
+    unzip -o $PROTOC_ZIP -d /usr/local bin/protoc && \
+    unzip -o $PROTOC_ZIP -d /usr/local 'include/*' && \
+    rm -f $PROTOC_ZIP
+
+
+# Ensure python and pip are globally available
+
+# Create a virtual environment in /app/venv
+RUN python3 -m venv /app/venv
+# Ensure the virtual environment is used by setting the PATH
+ENV PATH="/app/venv/bin:$PATH"
+
+# Verify installation
+RUN python --version && pip --version
+
+# Install prisma and prisma client with node before python install prisma
+RUN npm install prisma -g
+RUN npm install @prisma/client -g
+
+# Install LiteLLM
+RUN pip install --upgrade --no-cache-dir setuptools pip wheel requests \
+    && pip install --no-cache-dir litellm[proxy]==1.61.11 \
+    langfuse prisma prometheus_client
+
+# add prisma properties
+COPY litellm_config.yaml /app/config.yaml
+COPY schema.prisma.py /app/prisma/schema.prisma
+COPY .env.prisma /app/prisma/.env
+
+# app properties
+RUN mkdir -p /app/.cache
+RUN mkdir -p /app/.npm
+RUN chmod -R 0777 /app
+
+# Generate Prisma
+RUN prisma db pull --schema=/app/prisma/schema.prisma
+RUN prisma generate --schema=/app/prisma/schema.prisma
+RUN prisma --version
+
+EXPOSE 8000/tcp
+
+ENTRYPOINT ["litellm"]
+CMD [ "--config", "/app/config.yaml", "--port", "8000", "--num_workers", "6"]
