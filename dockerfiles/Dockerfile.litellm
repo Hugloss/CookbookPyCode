@@ -38,6 +38,11 @@ ENV PATH="/app/venv/bin:$PATH"
 # Verify installation
 RUN python --version && pip --version
 
+# Set home for litellm
+USER root
+ENV HOME=/app
+WORKDIR /app
+
 # Install prisma and prisma client with node before python install prisma
 RUN npm install prisma -g
 RUN npm install @prisma/client -g
