@@ -1,0 +1,73 @@
+# install IBM MQ client
+FROM opensuse/tumbleweed:latest
+
+# Install dependencis
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends -t pattern devel_basis && \
+    zypper --non-interactive in --no-recommends \
+    wget curl python3-devel
+
+# Ensure python and pip are globally available
+
+# Create a virtual environment in /app/venv
+RUN python3 -m venv /app/venv
+# Ensure the virtual environment is used by setting the PATH
+ENV PATH="/app/venv/bin:$PATH"
+
+# Verify installation
+RUN python --version && pip --version
+
+#
+# Install IBM MQ client
+#
+
+# Define the filename as a build-time argument
+ARG MQ_PACKAGE_FILENAME=9.3.0.0-IBM-MQ-Advanced-for-Developers-Non-Install-LinuxX64.tar.gz
+
+# Construct the URL based on the filename
+ARG MQ_BASE_URL=https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/messaging/mqadv
+ARG MQ_PACKAGE_URL=${MQ_BASE_URL}/${MQ_PACKAGE_FILENAME}
+
+# Create temp directory /mqm/tmp
+RUN mkdir -p /mqm/tmp/
+
+# Download the IBM MQ Advanced for Developers package using the constructed URL
+RUN wget ${MQ_PACKAGE_URL} -O /mqm/tmp/${MQ_PACKAGE_FILENAME}
+
+# Extract the package to /mqm/tmp/
+RUN tar -xzf /mqm/tmp/${MQ_PACKAGE_FILENAME} -C /mqm/tmp/ > /dev/null 2>&1
+
+# Copy libraries and headers to /opt/mqm/
+RUN mkdir -p /opt/mqm/lib64 /opt/mqm/lib /opt/mqm/inc && \
+    cp /mqm/tmp/lib64/lib* /opt/mqm/lib64/ && \
+    cp /mqm/tmp/lib/lib* /opt/mqm/lib/ && \
+    cp /mqm/tmp/lib/cc* /opt/mqm/lib/ && \
+    cp /mqm/tmp/inc/cmqc.h /opt/mqm/inc/ && \
+    cp /mqm/tmp/inc/cmqxc.h /opt/mqm/inc/ && \
+    cp /mqm/tmp/inc/cmqcfc.h /opt/mqm/inc/ && \
+    cp /mqm/tmp/inc/cmqbc.h /opt/mqm/inc/
+
+# Clean up: Remove the downloaded tar.gz file and the /mqm/tmp/ directory
+RUN rm /mqm/tmp/${MQ_PACKAGE_FILENAME} && \
+    rm -rf /mqm/tmp/
+
+# Set LD_LIBRARY_PATH and configure ldconfig
+ENV MQ_INSTALLATION_PATH=/opt/mqm
+ENV LD_LIBRARY_PATH=/opt/mqm/lib64:/opt/mqm/lib:$LD_LIBRARY_PATH
+RUN echo "/opt/mqm/lib64" > /etc/ld.so.conf.d/mqm.conf && \
+    echo "/opt/mqm/lib" >> /etc/ld.so.conf.d/mqm.conf && \
+    ldconfig
+
+# Create directorys for IBM MQ and set permissions to r+w for all users
+RUN mkdir -p /IBM && \
+    chmod a+rw /IBM && \
+    mkdir -p /tempfiles && \
+    chmod a+rw /tempfiles && \
+    mkdir -p //.mqm && \
+    chmod a+rw //.mqm
+
+# Install pymqi using pip
+RUN pip install pymqi
+
+# Verify pymqi installation by importing it in Python
+RUN python -c "import pymqi; print('pymqi successfully imported')"
