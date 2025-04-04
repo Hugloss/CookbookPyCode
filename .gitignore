@@ -5,6 +5,7 @@ image_processing/runs/
 image_processing/datasets/
 pcap_analyze/challenges/challenge
 pcap_analyze/challenges/challenge.zip
+datasets/dataset/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
