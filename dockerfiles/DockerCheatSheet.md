@@ -85,7 +85,7 @@ sudo docker build -f CUSTOM_DOCKERFILE_NAME -t CUSTOM_IMAGE_NAME  .
 To enter a running container, use:
 
 ```bash
-sudo docker exec -it [CONTAINER_ID] /bin/bash
+sudo docker exec -it [CONTAINER_NAME_OR_ID] /bin/bash
 ```
 
 ### Launching an Image Interactively
@@ -106,6 +106,37 @@ To gracefully stop a container interactively, use the keyboard shortcut:
 Ctrl + D
 ```
 
+## Restarting a Docker Container
+
+Sometimes a container may hang, misbehave, or need to be refreshed after changes. Restarting it ensures a clean state without affecting the underlying image or volumes.
+
+### Stop the Running Container
+
+Stops the container gracefully.
+
+```bash
+docker compose stop [IMAGE_NAME_OR_ID]
+> ✔ Container [CONTAINER_NAME_OR_ID] Stopped  # Expected output:
+```
+
+### Remove the Existing Container
+
+Removes the stopped container. This is safe and doesn't delete your image or persistent data (if volumes are used).
+
+```bash
+docker rm [CONTAINER_NAME_OR_ID]
+> [CONTAINER_NAME_OR_ID]  # Expected output:
+```
+
+### Start a Fresh Instance
+
+Brings the container back up using the configuration in `docker-compose.yml`.
+
+```bash
+docker compose up -d [IMAGE_NAME_OR_ID]
+> Creating [CONTAINER_NAME_OR_ID] ... done  # Expected output:
+```
+
 ## Remove existing container
 
 1. **Identify the Container ID or Name.**
@@ -123,7 +154,7 @@ Ctrl + D
    Before you can remove a container, you must ensure it's stopped. To stop a container, use:
 
    ```bash
-   sudo docker stop [CONTAINER_ID_OR_NAME]
+   sudo docker stop [CONTAINER_NAME_OR_ID]
    ```
 
 3. **Remove the Container.**
@@ -131,7 +162,7 @@ Ctrl + D
    Now, you can remove the container using:
 
    ```bash
-   sudo docker rm [CONTAINER_ID_OR_NAME]
+   sudo docker rm [CONTAINER_NAME_OR_ID]
    ```
 
 ## Docker File Cleanup

@@ -6,19 +6,76 @@ lspci | grep -i nvidia
 ```
 [Verify CUDA-Capable GPU](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#verify-you-have-a-cuda-capable-gpu)
 
-## Installing the NVIDIA Container Toolkit
-On the host, install NVIDIA Container Toolkit from [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
-```bash
-sudo zypper --gpg-auto-import-keys install -y nvidia-container-toolkit
-```
-
 ## Install CUDA Toolkit
-Follow the instructions for your system [here](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=SLES&target_version=15&target_type=rpm_network).
 
-Check CUDA install:
+Follow the official instructions for your system:
+[CUDA Downloads for SLES 15 (RPM Network Installer)](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=SLES&target_version=15&target_type=rpm_network)
+
+### Verify CUDA Installation
+
+After installation, verify that CUDA is installed correctly:
+
 ```bash
 nvcc --version
 ```
+
+### Install CUDA in Docker Image
+
+For a **minimal build**, use:
+
+```bash
+zypper in cuda-minimal-build-12-4
+```
+
+For the **full toolkit**, use:
+
+```bash
+zypper in cuda-toolkit-12-4
+```
+
+> **Note:** Specifying the CUDA version (e.g., `12-4`) helps avoid automatic upgrades. If you prefer automatic updates, you can omit the version suffix.
+
+### Prevent NVIDIA Driver Installation in Docker
+
+Avoid installing drivers inside the Docker image by locking the related packages:
+
+```bash
+zypper addlock nvidia-driver-G06-kmp-default nvidia-open-driver-G06-kmp-default
+```
+
+---
+
+
+## Installing the NVIDIA Container Toolkit
+On the host, install NVIDIA Container Toolkit from:
+[Nvidia Github](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#with-zypper-opensuse-sle).
+```bash
+# add the NVIDIA Container Toolkit repository directly from GitHub
+sudo zypper ar https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo
+# Install the NVIDIA container toolkit
+sudo zypper --gpg-auto-import-keys install -y nvidia-container-toolkit
+```
+
+### View Current Version of NVIDIA Container Toolkit on Host Machine
+
+The latest version of the NVIDIA Container Toolkit can be found here:
+[NVIDIA Container Toolkit Release Notes](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/release-notes.html)
+
+To check the installed version on your host system and verify its source, run:
+
+```bash
+zypper info nvidia-container-toolkit
+```
+
+Make sure the output includes the following:
+
+```
+Vendor         : NVIDIA CORPORATION
+Upstream URL   : https://github.com/NVIDIA/nvidia-container-toolkit
+```
+
+> ⚠️ **Disclaimer:**
+> Docker Compose may not work correctly unless the **NVIDIA Container Toolkit** is updated to the latest version. It’s recommended to always use the most recent release to ensure full compatibility with containerized GPU workloads.
 
 ## Configure the Docker Daemon
 ```bash
@@ -61,6 +118,8 @@ If it returns an error:
 docker: Error response from daemon: could not select device driver "" with capabilities: [[gpu]].
 ```
 **Flush changes and restart Docker** has not been returned after the installation of **NVIDIA Container Toolkit**.
+
+If you encounter driver issues inside the Docker container, check the [View version NVIDIA Container Toolkit](#view-version-nvidia-container-toolkit) section to ensure you're using a compatible setup.
 
 If that is not working, test to reinstall, uninstall and install, the nvidia-container-toolkit.
 
@@ -116,10 +175,89 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/python3.11/site-packages/nvi
 
 ```
 
-## Additional Resources
+## Locate `nvidia-smi`
+
+To find the `nvidia-smi` package manually:
+
+```bash
+zypper se -f nvidia-smi
+```
+
+Zypper will show the package and may prompt to install it.
+
+# CUDA Minimal Container
+
+This project provides a minimal CUDA-enabled Docker container setup using Docker Compose. Follow the steps below to build, run, and validate the container functionality.
+
+## Prerequisites
+
+- Docker and Docker Compose installed
+- NVIDIA GPU with drivers properly installed
+- [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html) set up
+- Docker configured to support NVIDIA runtime
+
+## Docker Compose Configuration
+
+The `docker-compose.yaml` file is configured with a specific container name:
+
+```yaml
+version: "3.9"
+
+services:
+  cuda-minimal:
+    container_name: cuda-min
+    runtime: nvidia
+    build:
+      context: ./dockerfiles
+      dockerfile: ./Dockerfile.cuda-min
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    ...
+```
+
+## Steps to Run
+
+### 1. Build and Start the Container
+
+Use Docker Compose to build and start the container in detached mode:
+
+```bash
+docker compose up -d cuda-minimal
+```
+
+### 2. Access the Running Container
+
+Enter the container with:
+
+```bash
+docker exec -it cuda-min /bin/bash
+```
+
+### 3. Validate Environment Inside the Container
+
+Run the following commands to ensure everything is working correctly:
+
+```bash
+# Check GPU visibility
+nvidia-smi
+
+# Check zypper package manager functionality
+zypper in -y unzip
+```
+
+If both commands succeed, it confirms:
+
+- GPU access is working inside the container via NVIDIA Container Toolkit
+- `zypper` is functioning properly inside the container
+- Docker and NVIDIA configurations are correct
+
+# Additional Resources
 - [GitHub Gist](https://gist.github.com/denguir/b21aa66ae7fb1089655dd9de8351a202)
 - [NVIDIA CUDA Docker Hub](https://hub.docker.com/r/nvidia/cuda)
 - [GPU Jupyter on GitHub](https://github.com/iot-salzburg/gpu-jupyter)
 - [AWS EC2 NVIDIA Driver Installation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html)
 - [NVIDIA Docker GitHub](https://github.com/NVIDIA/nvidia-docker)
 - [NVIDIA Container Toolkit Install Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/1.13.5/install-guide.html#setting-up-docker)
+- 📘 [CUDA Installation Guide for Linux (SLES)](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#common-installation-instructions-for-sles)
+- 📦 [Minimal CUDA Installation for Smaller Footprint](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#upgrading-from-cudatoolkit-package)
