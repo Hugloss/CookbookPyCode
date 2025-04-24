@@ -1,0 +1,63 @@
+FROM opensuse/tumbleweed:latest
+
+# Packages needed for build from source
+RUN zypper -n up && \
+    zypper --non-interactive in --no-recommends \
+    git-core \
+    curl libcurl4 wget \
+    make cmake \
+    gcc gawk \
+    readline-devel sqlite3-devel libbz2-devel libopenssl-devel \
+    findutils zlib-devel libffi-devel \
+    xz-devel tk-devel gdbm-devel libnsl-devel \
+    # Clean up
+    && zypper clean -a
+
+#
+# SSL FIX
+#
+# set env for SSL to system-level SSL certificates
+ENV SSL_CERT_FILE=/etc/ssl/ca-bundle.pem
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/ca-bundle.pem
+ENV DEFAULT_CA_BUNDLE_PATH=/etc/ssl/ca-bundle.pem
+
+
+#
+# pyenv
+#
+
+# Set up environment variables for pyenv
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="$PYENV_ROOT/bin:$PYENV_ROOT/shims:$PATH"
+ENV PYENV_VERSION=3.12
+
+# Install pyenv
+RUN curl https://pyenv.run | bash \
+    && echo "export PATH=$PATH" >> ~/.bashrc \
+    && echo 'eval "$(pyenv init --path)"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv init -)"' >> ~/.bashrc \
+    && echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.bashrc \
+    && echo "export PATH=$PATH" >> ~/.profile \
+    && echo 'eval "$(pyenv init --path)"' >> ~/.profile \
+    && echo 'eval "$(pyenv init -)"' >> ~/.profile \
+    && echo 'eval "$(pyenv virtualenv-init -)"' >> ~/.profile \
+    && source ~/.bashrc \
+    && source ~/.profile \
+    && pyenv rehash --force
+
+RUN pyenv --debug install ${PYENV_VERSION}
+
+
+#
+# uv
+#
+
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.local/bin/:$PATH"
+
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+# Run the installer then remove it
+RUN sh /uv-installer.sh && rm /uv-installer.sh \
+    # Test UV installation
+    && uv --version
