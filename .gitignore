@@ -6,6 +6,8 @@ image_processing/datasets/
 pcap_analyze/challenges/challenge
 pcap_analyze/challenges/challenge.zip
 datasets/dataset/
+text_clatext_classificationssification/mlruns/
+tokenizer/*.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
