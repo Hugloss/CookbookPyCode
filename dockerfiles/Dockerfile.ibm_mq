@@ -53,6 +53,11 @@ RUN rm /mqm/tmp/${MQ_PACKAGE_FILENAME} && \
 
 # Set LD_LIBRARY_PATH and configure ldconfig
 ENV MQ_INSTALLATION_PATH=/opt/mqm
+# Warning: Setting LD_LIBRARY_PATH globally may break curl functionality.
+# /opt/mqm/lib contains its own version of curl libraries, which should not override the system's version.
+# Avoid setting the following globally:
+RUN rm /opt/mqm/lib/libcurl*
+RUN rm /opt/mqm/lib64/libcurl*
 ENV LD_LIBRARY_PATH=/opt/mqm/lib64:/opt/mqm/lib:$LD_LIBRARY_PATH
 RUN echo "/opt/mqm/lib64" > /etc/ld.so.conf.d/mqm.conf && \
     echo "/opt/mqm/lib" >> /etc/ld.so.conf.d/mqm.conf && \
