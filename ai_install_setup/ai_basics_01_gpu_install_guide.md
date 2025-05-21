@@ -166,13 +166,45 @@ RUN pip install \
     nvidia-nvjitlink-cu12==12.1.105
 ```
 
+### 🛠 Set Environment Variables (If Needed)
+
+Sometimes, **PyTorch fails to find CUDA libraries at runtime**, even if they are installed correctly. This can happen due to environment variables not being set properly, especially in Docker containers or custom environments.
+
+Even if the shared libraries (e.g., `libcublas.so`, `libcudnn.so`) **exist on disk**, PyTorch may not locate them unless their directories are listed in `LD_LIBRARY_PATH`.
+
+#### 🔍 Diagnosing the Issue
+
+To confirm that the `.so` files are present, use a command like:
+
 ```bash
-find / -name 'libnccl*'
+find / -name 'libcudnn*'
+find /usr/local/lib/python3.11/site-packages/ -name 'libcudnn.so*'
 ```
 
-```bash
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:/usr/local/lib/python3.11/site-packages/nvidia/cusparse/lib:/usr/local/lib/python3.11/site-packages/nvidia/cuda_nvcc/lib:/usr/local/lib/python3.11/site-packages/nvidia/cufft/lib:/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.11/site-packages/nvidia/nccl/lib:/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.11/site-packages/nvidia/curand/lib:/usr/local/lib/python3.11/site-packages/nvidia/cusolver/lib:/usr/local/lib/python3.11/site-packages/nvidia/nvtx/lib:/usr/local/lib/python3.11/site-packages/nvidia/nvjitlink/lib:/usr/local/lib/python3.11/site-packages/nvidia/cupti/lib
+Replace `libcudnn.so*` with any library name you're troubleshooting (e.g., `libcublas.so*`, `libcufft.so*`, etc.).
 
+If the files are found but PyTorch still fails to load them, it’s a sign that they’re not in the runtime linker’s search path.
+
+#### ✅ Solution: Set `LD_LIBRARY_PATH`
+
+You can fix this by explicitly adding all relevant library directories to the `LD_LIBRARY_PATH`. In a Dockerfile, use the `ENV` directive like this:
+
+```dockerfile
+ENV LD_LIBRARY_PATH=/usr/local/lib/python3.11/site-packages/nvidia/nvjitlink/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cupti/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/nvtx/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cuda_nvrtc/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cuda_nvcc/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cuda_runtime/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cufile/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cusparse/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/curand/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cusolver/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cufft/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cublas/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/nccl/lib:\
+/usr/local/lib/python3.11/site-packages/nvidia/cudnn/lib:\
+/usr/local/lib/python3.11/site-packages/cusparselt/lib/:$LD_LIBRARY_PATH
 ```
 
 ## Locate `nvidia-smi`
