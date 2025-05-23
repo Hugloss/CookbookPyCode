@@ -352,7 +352,7 @@ Absolutely! Here's a beginner-friendly, fully explained **README-style Markdown*
 
 ---
 
-# Docker Host Setup with Shared UID/GID and 2775 Permissions
+# 🚀 Docker Host Setup with Shared UID/GID and 2775 Permissions
 
 This guide walks you through preparing a **Linux host** to work smoothly with Docker containers that need shared user/group IDs and group-based permissions (`chmod 2775`). This setup is ideal for development environments where files created by a container should be accessible on the host and by other containers or users in the same group.
 
@@ -360,69 +360,44 @@ This guide walks you through preparing a **Linux host** to work smoothly with Do
 
 ## 🧱 Goal
 
-- Create a user and group with UID/GID 1000 (or your choice)
-- Ensure shared folders (e.g. `/home/repos`) have correct group ownership and `chmod 2775`
-- Run Docker containers with matched UID/GID so file access and permissions work seamlessly
-- Use `docker-compose` for easy container startup
+* Match UID/GID between host and container (typically 1000)
+* Ensure shared folders (e.g. `/home/repos`) are writable and group-shareable
+* Run Docker containers with consistent permissions and user mapping
+* Use `docker-compose` for simple container orchestration
 
 ---
 
 ## ✅ Host Setup Steps
 
-### 1. Create the Group
+### 1. Prepare the Shared Directory
 
-Create a group with GID 1000 (or check if one exists already):
-
-```bash
-sudo groupadd -g 1000 developer-group
-````
-
-> If a group with GID 1000 already exists (e.g. `users`), you may reuse it if appropriate.
-
----
-
-### 2. Create the Shared User
-
-Create a system user (we'll call it `headless-user`) with UID 1000 and assign it to the group:
+Ensure the directory exists, is owned by UID/GID 1000, and has proper group inheritance:
 
 ```bash
-sudo useradd -u 1000 -g developer-group -m -s /bin/bash headless-user
-```
+# Set ownership to your current host user to avoid access issues
+sudo chown -R $(whoami) /home/repos
 
-#### Set a Password (Optional)
+# Then reassign to UID 1000 and GID 1000 (used by the container)
+sudo chown -R 1000:1000 /home/repos
 
-This step is optional but useful for debugging or manual login:
-
-```bash
-echo "headless-user:password123" | sudo chpasswd
-```
-
----
-
-### 3. Prepare the Shared Directory
-
-Assuming `/home/repos` already exists, apply the correct group and permissions:
-
-```bash
-sudo chown -R :developer-group /home/repos
+# Set permissions with setgid so group ownership is inherited
 sudo chmod -R 2775 /home/repos
 ```
 
-* `chown -R :developer-group`: Changes group ownership
-* `chmod -R 2775`: Enables group read/write/execute and **setgid**, so new files/folders inherit the group
+> This ensures the container user (UID 1000, like `jovyan`) can read/write and new files inherit the correct group.
 
 ---
 
 ## 🐳 Docker Compose Setup
 
-Create a `docker-compose.yml` file with the following contents:
+Create a `docker-compose.yml` file:
 
 ```yaml
 version: "3.8"
 
 services:
   dev-container:
-    image: your-docker-image:latest
+    image: quay.io/jupyter/scipy-notebook:2025-02-12
     container_name: dev-container
     environment:
       - NB_UID=1000
@@ -430,54 +405,58 @@ services:
       - CHOWN_HOME=yes
       - GRANT_SUDO=yes
     volumes:
-      - /home/repos:/home/headless-user/repos
+      - /home/repos:/home/jovyan/repos
     user: "1000:1000"
 ```
 
-> Replace `your-docker-image:latest` with the actual image you want to use.
-
 ---
 
-## 🚀 How to Start
-
-Run the container:
+## 🚀 Start the Container
 
 ```bash
 docker-compose up -d
 ```
 
-This starts the container as UID and GID 1000, ensures the home directory is owned correctly, and grants the user sudo inside the container.
+This runs the container as UID/GID 1000 (matching the host), and mounts the shared directory into `/home/jovyan/repos`.
 
 ---
 
-## 🧪 Testing Permissions
+## 🧪 Verify Permissions
 
-1. Inside the container:
+### Inside the Container:
 
-   ```bash
-   touch /home/headless-user/repos/testfile
-   ls -l /home/headless-user/repos
-   ```
+```bash
+docker exec -it dev-container bash
+touch /home/jovyan/repos/testfile
+ls -l /home/jovyan/repos
+```
 
-2. On the host:
+### On the Host:
 
-   ```bash
-   ls -l /home/repos
-   ```
+```bash
+ls -l /home/repos
+```
 
-You should see files owned by `headless-user:developer-group` with permissions like:
+You should see:
 
 ```
--rwxrwxr-x 1 headless-user developer-group 0 May 23 12:00 testfile
+-rwxrwxr-x 1 1000 1000 0 May 23 12:00 testfile
 ```
+
+If you created a `headless-user` with UID 1000 on the host, you'll see names instead of numeric IDs.
 
 ---
 
 ## 📌 Notes
 
-* This setup is especially useful for Jupyter-based images, development containers, or CI/CD runners that interact with mounted codebases.
-* Always use `chmod 2775` with `setgid` if you want new files to inherit the group.
-* Use `NB_UID`, `NB_GID`, and `user:` consistently to avoid permission mismatches.
+* Creating a matching user/group on the host (e.g., `headless-user:developer-group` with UID/GID 1000) is optional but helpful for clarity.
+* `chmod 2775` + `chown 1000:1000` ensures seamless read/write from both host and container.
+* If you're on SELinux (e.g., RHEL/Fedora), add `:Z` to the volume mount:
+
+  ```yaml
+  volumes:
+    - /home/repos:/home/jovyan/repos:Z
+  ```
 
 ---
 
