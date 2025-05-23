@@ -352,6 +352,136 @@ Absolutely! Here's a beginner-friendly, fully explained **README-style Markdown*
 
 ---
 
+# Docker Host Setup with Shared UID/GID and 2775 Permissions
+
+This guide walks you through preparing a **Linux host** to work smoothly with Docker containers that need shared user/group IDs and group-based permissions (`chmod 2775`). This setup is ideal for development environments where files created by a container should be accessible on the host and by other containers or users in the same group.
+
+---
+
+## 🧱 Goal
+
+- Create a user and group with UID/GID 1000 (or your choice)
+- Ensure shared folders (e.g. `/home/repos`) have correct group ownership and `chmod 2775`
+- Run Docker containers with matched UID/GID so file access and permissions work seamlessly
+- Use `docker-compose` for easy container startup
+
+---
+
+## ✅ Host Setup Steps
+
+### 1. Create the Group
+
+Create a group with GID 1000 (or check if one exists already):
+
+```bash
+sudo groupadd -g 1000 developer-group
+````
+
+> If a group with GID 1000 already exists (e.g. `users`), you may reuse it if appropriate.
+
+---
+
+### 2. Create the Shared User
+
+Create a system user (we'll call it `headless-user`) with UID 1000 and assign it to the group:
+
+```bash
+sudo useradd -u 1000 -g developer-group -m -s /bin/bash headless-user
+```
+
+#### Set a Password (Optional)
+
+This step is optional but useful for debugging or manual login:
+
+```bash
+echo "headless-user:password123" | sudo chpasswd
+```
+
+---
+
+### 3. Prepare the Shared Directory
+
+Assuming `/home/repos` already exists, apply the correct group and permissions:
+
+```bash
+sudo chown -R :developer-group /home/repos
+sudo chmod -R 2775 /home/repos
+```
+
+* `chown -R :developer-group`: Changes group ownership
+* `chmod -R 2775`: Enables group read/write/execute and **setgid**, so new files/folders inherit the group
+
+---
+
+## 🐳 Docker Compose Setup
+
+Create a `docker-compose.yml` file with the following contents:
+
+```yaml
+version: "3.8"
+
+services:
+  dev-container:
+    image: your-docker-image:latest
+    container_name: dev-container
+    environment:
+      - NB_UID=1000
+      - NB_GID=1000
+      - CHOWN_HOME=yes
+      - GRANT_SUDO=yes
+    volumes:
+      - /home/repos:/home/headless-user/repos
+    user: "1000:1000"
+```
+
+> Replace `your-docker-image:latest` with the actual image you want to use.
+
+---
+
+## 🚀 How to Start
+
+Run the container:
+
+```bash
+docker-compose up -d
+```
+
+This starts the container as UID and GID 1000, ensures the home directory is owned correctly, and grants the user sudo inside the container.
+
+---
+
+## 🧪 Testing Permissions
+
+1. Inside the container:
+
+   ```bash
+   touch /home/headless-user/repos/testfile
+   ls -l /home/headless-user/repos
+   ```
+
+2. On the host:
+
+   ```bash
+   ls -l /home/repos
+   ```
+
+You should see files owned by `headless-user:developer-group` with permissions like:
+
+```
+-rwxrwxr-x 1 headless-user developer-group 0 May 23 12:00 testfile
+```
+
+---
+
+## 📌 Notes
+
+* This setup is especially useful for Jupyter-based images, development containers, or CI/CD runners that interact with mounted codebases.
+* Always use `chmod 2775` with `setgid` if you want new files to inherit the group.
+* Use `NB_UID`, `NB_GID`, and `user:` consistently to avoid permission mismatches.
+
+---
+
+
 # ⚙️ Automating Docker with Makefile + Docker Compose
 
 This guide explains why and how to use a `Makefile` to automate Docker Compose commands, even if you're new to both.
