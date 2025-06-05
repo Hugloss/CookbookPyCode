@@ -66,6 +66,7 @@ python --version
 Install useful Jupyter and data science packages:
 
 ```bash
+pip install --upgrade setuptools pip wheel requests
 pip install ipykernel ipywidgets matplotlib pandas numpy
 ```
 
