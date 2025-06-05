@@ -1,24 +1,24 @@
+# 🐍 Install `pyenv` on Ubuntu / WSL
 
-# Install pyenv on Ubuntu / WSL
-
-This guide will help you install `pyenv` and configure your shell environment. It also includes steps to install Python packages like `ipykernel` and `ipywidgets`.
+This guide walks you through installing `pyenv`, setting up your shell, and configuring Python environments with essential packages like `ipykernel` and `ipywidgets`.
 
 ---
 
-## 🚀 1. Try Quick Install via `curl`
+## 🚀 1. Quick Install via `curl`
 
-First, try installing with the official script:
+Try the official one-liner installation script:
 
 ```bash
 curl https://pyenv.run | bash
-````
+```
 
-If that **doesn't work** (e.g., due to SSL certificate errors), follow the manual install steps below.
+> ⚠️ If this fails (e.g., due to SSL issues), follow the manual installation steps below.
 
 ---
 
-## 🔧 2. Manual Install via Git
-Clone pyenv and plugins:
+## 🔧 2. Manual Installation via Git
+
+Clone the main `pyenv` repo and its useful plugins:
 
 ```bash
 git clone https://github.com/pyenv/pyenv.git ~/.pyenv
@@ -28,9 +28,9 @@ git clone https://github.com/pyenv/pyenv-update.git ~/.pyenv/plugins/pyenv-updat
 
 ---
 
-## ⚙️ 3. Update `.bashrc`
+## ⚙️ 3. Shell Configuration
 
-Append the following to your `~/.bashrc`:
+Update your shell config (`~/.bashrc`, or `~/.zshrc` if using Zsh):
 
 ```bash
 # pyenv setup
@@ -41,10 +41,10 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 ```
 
-Reload your shell:
+Then apply the changes:
 
 ```bash
-source ~/.bashrc
+source ~/.bashrc   # or `source ~/.zshrc`
 ```
 
 ---
@@ -61,9 +61,9 @@ python --version
 
 ---
 
-## 🐍 5. Install Python Packages
+## 📦 5. Install Common Python Packages
 
-Once Python is set up via `pyenv`, install common Jupyter-related tools:
+Install useful Jupyter and data science packages:
 
 ```bash
 pip install ipykernel ipywidgets matplotlib pandas numpy
@@ -71,6 +71,33 @@ pip install ipykernel ipywidgets matplotlib pandas numpy
 
 ---
 
-## 🎉 Done!
+## 🛠 6. Fix pip SSL Issues (Optional)
 
-You're ready to use Python with `pyenv`, and tools like VS Code will work properly with `ipykernel` and `ipywidgets`.
+If `pip` fails to connect to external resources (e.g., due to SSL errors), configure trusted hosts:
+
+### 🔍 Check Current pip Configuration
+
+```bash
+pip config list
+pip config debug
+```
+
+### ⚙️ Add Trusted Hosts
+
+Set trusted hosts globally:
+
+```bash
+pip config set global.trusted-host "pypi.org files.pythonhosted.org pypi.python.org"
+```
+
+Verify the settings:
+
+```bash
+pip config list
+```
+
+---
+
+## 🎉 You're All Set!
+
+Python and `pyenv` are now installed and ready to use with tools like Jupyter and VS Code.
