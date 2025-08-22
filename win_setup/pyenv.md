@@ -1,3 +1,6 @@
+# For windows run this and than follow the guide below
+- https://github.com/pyenv-win/pyenv-win?tab=readme-ov-file#quick-start
+
 # 🐍 Install `pyenv` on Ubuntu / WSL
 
 This guide walks you through installing `pyenv`, setting up your shell, and configuring Python environments with essential packages like `ipykernel` and `ipywidgets`.
