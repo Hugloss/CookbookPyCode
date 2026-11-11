@@ -4,6 +4,10 @@ Use these guides in order to prepare an Ubuntu WSL2 environment for the Python
 cookbook. They identify which commands run in Windows PowerShell, when
 Administrator is required, and which commands run inside Ubuntu.
 
+Start with NAT networking, DNS tunneling, and Windows proxy integration. Keep
+that baseline when the network checks pass; mirrored networking is an optional
+alternative to test when you need its features.
+
 | Guide | Use it for |
 | --- | --- |
 | [1. WSL2 and Ubuntu](wsl_1_install.md) | Installation, the shared `.wslconfig` profile with a 200 GB default for new disks, and Linux development prerequisites. |

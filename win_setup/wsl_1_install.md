@@ -4,8 +4,8 @@
 
 This guide targets **Windows 11 22H2 or newer**, an updated WSL installation,
 and Ubuntu. The examples use Ubuntu 24.04. WSL itself also supports older
-Windows releases, but the mirrored networking profile below requires the newer
-Windows version. Check your Windows version with `winver`.
+Windows releases, but the DNS tunneling and proxy features in this profile
+require the newer Windows version. Check your Windows version with `winver`.
 
 ## 1. Install or update WSL
 
@@ -50,7 +50,7 @@ keys into its existing `[wsl2]` section. Use only one such section.
 ```ini
 [wsl2]
 defaultVhdSize=200GB
-networkingMode=mirrored
+networkingMode=nat
 dnsTunneling=true
 autoProxy=true
 ```
@@ -58,9 +58,16 @@ autoProxy=true
 | Setting | Effect |
 | --- | --- |
 | `defaultVhdSize=200GB` | Sets the default virtual capacity for newly created distribution disks. It does not allocate 200 GB immediately, shrink an existing disk, or reclaim deleted data. |
-| `networkingMode=mirrored` | Enables mirrored networking, including Windows/WSL IPv4 localhost connectivity. VPN compatibility still depends on the VPN and firewall. |
+| `networkingMode=nat` | Uses NAT networking as the cookbook's starting point. Verify connectivity and your VPN before considering a different mode. |
 | `dnsTunneling=true` | Lets WSL resolve DNS through Windows. Existing `generateResolvConf=false` settings must be removed or changed; see the next guide. |
 | `autoProxy=true` | Imports Windows HTTP proxy information. It does not install certificates into Ubuntu, and PAC-only proxies may need client-specific configuration. |
+
+Keep NAT when it works. Mirrored mode is an optional alternative for features
+such as accessing Windows-hosted services from Linux at `127.0.0.1`; its
+compatibility depends on the VPN and network setup. Use the
+[network checks and mode comparison](wsl_2_dns_fix.md#3-if-wsl-has-no-network-or-mirrored-mode-fails-with-your-vpn)
+before adopting it. Microsoft's [networking guide][networking] explains the
+addressing and features of each mode.
 
 The file applies to **all WSL2 distributions for this Windows user**. The 200 GB
 value is a per-disk creation default, not a combined Windows disk-space quota.
@@ -177,6 +184,7 @@ storage after deleting Linux data.
 
 [install]: https://learn.microsoft.com/en-us/windows/wsl/install
 [config]: https://learn.microsoft.com/en-us/windows/wsl/wsl-config
+[networking]: https://learn.microsoft.com/en-us/windows/wsl/networking
 [size]: https://github.com/microsoft/WSL/blob/master/triage/config.yml
 [ubuntu]: https://documentation.ubuntu.com/wsl/latest/howto/install-ubuntu-wsl2/
 [import]: https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro

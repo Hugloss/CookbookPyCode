@@ -3,8 +3,8 @@
 [Setup index](README.md) · Previous: [WSL installation](wsl_1_install.md) · Next: [uv setup](wsl_3_uv_setup.md)
 
 On Windows 11 22H2 or newer with updated WSL, start with the
-[`.wslconfig` profile](wsl_1_install.md#2-configure-wsl2-on-windows): mirrored
-networking, DNS tunneling, and Windows proxy integration. Microsoft's
+[`.wslconfig` profile](wsl_1_install.md#2-configure-wsl2-on-windows): NAT networking,
+DNS tunneling, and Windows proxy integration. Microsoft's
 [networking guide][networking] describes these features and their prerequisites.
 
 An earlier version of this cookbook disabled DNS generation, replaced the
@@ -167,16 +167,26 @@ Configuration changes apply when the WSL VM restarts; see Microsoft's
 [configuration reference][config].
 
 Update WSL and inspect Microsoft's [known networking issues][troubleshooting].
-For a controlled comparison, change only `networkingMode` to `nat` in your
-existing `.wslconfig`, retaining `dnsTunneling=true` on supported Windows.
+If the active mode is `mirrored` and the checks fail, compare it with the
+cookbook baseline: change only `networkingMode` to `nat` in your existing
+`.wslconfig`, retaining `dnsTunneling=true` on supported Windows.
 Save work, close applications that could restart WSL, run `wsl --shutdown` in
 PowerShell, and reopen the distro. This stops all distributions. Repeat
 `wslinfo --networking-mode` and the same interface, route, DNS, and HTTPS checks.
-Treat NAT as a comparison, not a confirmed fix. If this does not help, restore
-the prior setting and restart again. If the expected mode does not take effect,
-check for startup warnings and organization-managed [WSL policies][policies].
+If NAT restores connectivity, keep it and verify the internal VPN names and
+services you need. That establishes a working configuration for this machine;
+it does not identify the exact cause of the mirrored-mode failure. If NAT does
+not help, restore the prior setting and restart again. If the expected mode does
+not take effect, check for startup warnings and organization-managed
+[WSL policies][policies].
 NAT changes Windows/WSL addressing;
 consult the [networking guide][networking] for the relevant connection direction.
+
+Once the NAT baseline passes, try `networkingMode=mirrored` only if you need its
+features, such as Linux access to Windows-hosted services at `127.0.0.1`.
+Change only that key, restart WSL, and repeat the same checks. Return to the
+working NAT configuration if the comparison fails. Neither mode is guaranteed
+to work with every VPN or firewall configuration.
 
 For older Windows versions without DNS tunneling, use Microsoft's documented
 VPN workaround only when needed, using the DNS servers supplied by your VPN or
