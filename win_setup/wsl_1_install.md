@@ -140,7 +140,31 @@ unreachable distribution download. If both download and location are problems,
 combine supported options only after checking `wsl --help`. Avoid existing
 distribution directories.
 
-**Fallback C — last-resort manual import of an official Ubuntu root filesystem.**
+**Fallback C — install an approved offline Ubuntu `.wsl` image.**
+On WSL **2.4.10 or newer**, you can install an official Ubuntu WSL image
+downloaded separately from [Ubuntu's image archive][ubuntu]. The installation
+does not require Microsoft Store access; your organization may distribute a
+verified image through an internal channel. Select an Ubuntu **24.04** WSL image
+for this guide and verify its origin according to IT policy. Confirm your
+`wsl --help` offers `--from-file`.
+
+In **Windows PowerShell**, replace the example path with the actual approved
+downloaded file before executing:
+
+```powershell
+$ubuntuImage = "C:\path\to\your-approved-ubuntu-24.04.wsl"
+if (-not (Test-Path -LiteralPath $ubuntuImage -PathType Leaf)) {
+    throw "Approved Ubuntu WSL image not found: $ubuntuImage"
+}
+wsl --install --from-file $ubuntuImage
+```
+
+Inspect `wsl --list --verbose` afterwards for the actual installed distro
+name. If this feature is unavailable, update WSL through an approved channel
+or use fallback D. Do not rename an ordinary rootfs archive to `.wsl`:
+the two installation methods require different image formats.
+
+**Fallback D — last-resort manual import of an official Ubuntu root filesystem.**
 Use this when supported installation paths remain unavailable (for example on a
 locked-down corporate machine), or when IT explicitly requires an imported image.
 Obtain an official Ubuntu WSL archive through an approved channel and verify its
@@ -156,9 +180,35 @@ wsl --import Ubuntu-24.04-Manual "C:\WSL\Ubuntu-24.04-Manual" "C:\Users\YOUR_USE
 wsl --distribution Ubuntu-24.04-Manual
 ```
 
-Imported distributions may start as `root` without creating a normal user. If
-so, run these commands **inside the imported Ubuntu root shell**, replacing
-`devuser` with your chosen username. If that user already exists, skip `adduser`.
+Imported distributions may start as `root` without creating a normal user.
+This recovery shell might not yet have `sudo`, `nano`, a corporate CA, or
+working network access. First identify the approved APT mirror/proxy and
+verify that the network can reach it.
+
+**Only when IT requires an unauthenticated explicit APT proxy**, configure
+that proxy directly in the *root shell*, before running `apt update`. Replace
+the example host and port with IT-approved values; skip this block if
+direct access or an internal mirror already works:
+
+```bash
+cat > /etc/apt/apt.conf.d/90corporate-proxy <<'APT'
+Acquire::http::Proxy "http://proxy.example.invalid:8080/";
+Acquire::https::Proxy "http://proxy.example.invalid:8080/";
+APT
+chmod 0644 /etc/apt/apt.conf.d/90corporate-proxy
+```
+
+For an authenticated APT proxy, never place credentials in a world-readable
+`apt.conf.d` file. Ask IT for managed provisioning or use APT's restricted
+`/etc/apt/auth.conf` with correct permissions. If corporate certificates
+cannot be installed securely in the fresh image, request an IT-provisioned
+rootfs or approved offline packages. See the
+[APT and certificate guide](wsl_3_uv_setup.md#when-apt-needs-its-own-proxy-or-internal-mirror).
+Do **not** disable TLS or repository-signature verification.
+
+Once APT can access the approved repositories, run these commands **inside
+the imported Ubuntu root shell**, replacing `devuser` with your desired
+username; skip `adduser` if the account already exists:
 
 ```bash
 apt update
@@ -183,7 +233,8 @@ wsl --distribution Ubuntu-24.04-Manual
 ```
 
 Inside Ubuntu, `whoami` should now show your normal user. Microsoft documents the
-[import and default-user procedure][import].
+[import and default-user procedure][import]. Verify APT and DNS before
+continuing to [uv setup](wsl_3_uv_setup.md).
 
 ## 4. Prepare Ubuntu for Python development
 
@@ -223,6 +274,6 @@ storage after deleting Linux data.
 [config]: https://learn.microsoft.com/en-us/windows/wsl/wsl-config
 [networking]: https://learn.microsoft.com/en-us/windows/wsl/networking
 [size]: https://github.com/microsoft/WSL/blob/master/triage/config.yml
-[ubuntu]: https://documentation.ubuntu.com/wsl/latest/howto/install-ubuntu-wsl2/
+[ubuntu]: https://ubuntu.com/wsl/docs/latest/howto/install-ubuntu-wsl2/
 [import]: https://learn.microsoft.com/en-us/windows/wsl/use-custom-distro
 [filesystems]: https://learn.microsoft.com/en-us/windows/wsl/filesystems

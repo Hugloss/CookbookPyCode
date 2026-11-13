@@ -7,17 +7,25 @@ This guide walks you through installing `pyenv`, setting up your shell, and conf
 
 ---
 
-## 🚀 1. Quick Install via `curl`
+## 🚀 1. Preferred official pyenv installer
 
-Try the official one-liner installation script:
+In Ubuntu WSL, complete the [proxy and CA preflight](wsl_3_uv_setup.md)
+before downloading scripts. Obtain the installer from an approved source:
+[official pyenv-installer](https://github.com/pyenv/pyenv-installer).
+Rather than piping a network response into Bash, download to a temporary file,
+review it, and execute only when permitted by organizational policy:
 
 ```bash
-curl https://pyenv.run | bash
+pyenv_installer=$(mktemp)
+curl --fail --show-error --location --max-time 60 \
+    https://pyenv.run -o "$pyenv_installer"
+# Inspect the file and check the upstream source before proceeding.
+bash "$pyenv_installer"
+rm -- "$pyenv_installer"
 ```
 
-> ⚠️ If this fails (e.g., due to SSL issues), follow the manual installation steps below.
-
----
+If this is blocked, use the manual Git installation below via the approved
+corporate mirror or route. Do not bypass TLS verification to make it work.
 
 ## 🔧 2. Manual Installation via Git
 
@@ -75,32 +83,34 @@ pip install ipykernel ipywidgets matplotlib pandas numpy
 
 ---
 
-## 🛠 6. Fix pip SSL Issues (Optional)
+## 🛠 6. Repair pip proxy or TLS errors without disabling verification
 
-If `pip` fails to connect to external resources (e.g., due to SSL errors), configure trusted hosts:
+For Ubuntu WSL, use the [corporate proxy, APT and CA guide](wsl_3_uv_setup.md).
+Configure the approved package index and trusted corporate root certificates
+instead of adding public package hosts to pip's `trusted-host` exceptions.
+An exception can weaken HTTPS verification.
 
-### 🔍 Check Current pip Configuration
-
-```bash
-pip config list
-pip config debug
-```
-
-### ⚙️ Add Trusted Hosts
-
-Set trusted hosts globally:
+Inspect pip's active configuration **locally**; do not paste values containing
+proxy credentials or private indexes into shared logs:
 
 ```bash
-pip config set global.trusted-host "pypi.org files.pythonhosted.org pypi.python.org"
+python -m pip config list
+python -m pip config debug
 ```
 
-Verify the settings:
+If an older recipe left `global.trusted-host` in your **user** pip
+configuration, and `pip config debug` confirms it exists at that scope,
+remove only that key:
 
 ```bash
-pip config list
+python -m pip config --user unset global.trusted-host
 ```
 
----
+Other possible sources include a virtual-environment/site configuration,
+system-managed config, or the `PIP_TRUSTED_HOST` environment variable. Remove
+only exceptions you own; ask IT before changing managed settings. See
+[pip configuration](https://pip.pypa.io/en/stable/cli/pip_config/) and
+[pip HTTPS certificates](https://pip.pypa.io/en/stable/topics/https-certificates/).
 
 ## 🎉 You're All Set!
 

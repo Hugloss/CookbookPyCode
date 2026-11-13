@@ -59,7 +59,10 @@ certificate trust. Never paste raw proxy-variable values, authenticated URLs,
 `sudo` may not preserve the user's proxy environment, and APT has its own
 `Acquire::http::Proxy` and `Acquire::https::Proxy` settings. If
 `sudo apt update` fails while ordinary user-level HTTPS works, confirm that the
-APT repository URLs and network access are approved by IT. Prefer an
+APT repository URLs and network access are approved by IT. If you are in an
+imported distro's `root` shell without `sudo`, use the
+[root-first-boot APT procedure](wsl_1_install.md#3-install-or-start-ubuntu)
+instead of `sudoedit`. Prefer an
 organization-provided Ubuntu mirror when available.
 
 Only when an **explicit, unauthenticated proxy** is required for APT, create or
