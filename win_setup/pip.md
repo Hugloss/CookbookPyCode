@@ -1,36 +1,54 @@
+# Installing AI libraries with pip or uv
 
-# 🧩 AI Libraries Installation Guide
+This is an **optional GPU/ML recipe**, not required by the basic WSL setup.
+Unsloth and its CUDA/PyTorch dependencies require a supported GPU, driver and
+Python stack; the procedure is **not** a CPU-only PyTorch installation guide.
 
-We use **[Unsloth](https://github.com/unslothai/unsloth)** as the base framework to install and manage AI libraries.
-Unsloth provides optimized training utilities, integrations, and dependencies for **PyTorch**, **Transformers**, and other GPU-accelerated packages.
-This guide shows you how to install the required AI libraries using either **pip** or **uv**.
-Choose the method that best fits your workflow.
----
+First complete the [WSL corporate proxy, CA, and uv setup](wsl_3_uv_setup.md).
+Use approved package indexes and sources. In a restricted environment, your
+organization may provide its own package mirror.
 
-## 🚀 Install with pip
+## Option A: uv with an isolated virtual environment
 
-You can install **Unsloth** with CUDA 12.4 and Torch 2.5.0 support directly via pip:
-
-```bash
-pip install "unsloth[cu124-torch250] @ git+https://github.com/unslothai/unsloth.git"
-```
-
-📖 Reference: [Unsloth Docs – Advanced Pip Installation](https://docs.unsloth.ai/get-started/installing-+-updating/pip-install#advanced-pip-installation)
-
----
-
-## ⚡ Install with uv
-
-If you prefer using **uv**, you can install the dependencies with:
+For an Ubuntu 24.04 host with a compatible GPU and Python 3.12:
 
 ```bash
-uv pip install -qqq \
-    "torch>=2.8.0" "triton>=3.4.0" {install_numpy} \
-    "unsloth_zoo[base] @ git+https://github.com/unslothai/unsloth-zoo" \
-    "unsloth[base] @ git+https://github.com/unslothai/unsloth" \
-    torchvision bitsandbytes \
-    git+https://github.com/huggingface/transformers \
-    git+https://github.com/triton-lang/triton.git@05b2c186c1b6c9a08375389d5efe9cb4c401c075#subdirectory=python/triton_kernels
+mkdir -p ~/src/unsloth-example
+cd ~/src/unsloth-example
+uv venv --python 3.12
+uv pip install unsloth
 ```
 
-📖 Reference: [Fine-tuning GPT-OSS with Unsloth](https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune/tutorial-how-to-fine-tune-gpt-oss)
+`uv pip` automatically detects the local `.venv` even without shell
+activation. To use it with other CLI tools, run
+`source .venv/bin/activate`. Check the Unsloth support matrix for the
+actual CUDA/Torch combination before training.
+
+## Option B: pip with an isolated virtual environment
+
+Use a separate environment; do not install large GPU dependencies into the
+system Python. On Ubuntu 24.04, `python3` normally supplies Python 3.12:
+
+```bash
+mkdir -p ~/src/unsloth-pip-example
+cd ~/src/unsloth-pip-example
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install unsloth
+```
+
+Do not use `--trusted-host` to bypass a missing corporate CA. See
+[pip proxy and TLS troubleshooting](pyenv.md#6-repair-pip-proxy-or-tls-errors-without-disabling-verification).
+
+## Advanced GPU version combinations
+
+The earlier command mixed a fixed CUDA/Torch stack, moving Git branches, and
+an unresolved `{install_numpy}` template token. That example was not runnable
+or reproducible. Rather than guessing a compatible NumPy version, follow the
+**current** vendor installation matrix for your hardware and freeze the tested
+package versions in your project's requirements/lockfile. Avoid suppressing
+package-installation diagnostics with `-qqq`.
+
+References: [Unsloth pip installation](https://docs.unsloth.ai/get-started/installing-%2B-updating/pip-install),
+[advanced Unsloth examples](https://docs.unsloth.ai/basics/gpt-oss-how-to-run-and-fine-tune/tutorial-how-to-fine-tune-gpt-oss),
+and [uv environments](https://docs.astral.sh/uv/pip/environments/).

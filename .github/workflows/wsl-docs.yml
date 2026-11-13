@@ -1,0 +1,31 @@
+name: WSL documentation checks
+
+on:
+  pull_request:
+    paths:
+      - 'win_setup/**'
+      - '.github/workflows/wsl-docs.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'win_setup/**'
+      - '.github/workflows/wsl-docs.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  documentation:
+    name: Verify docs (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check links, notebooks, and shell example syntax
+        run: python win_setup/verify_docs.py
