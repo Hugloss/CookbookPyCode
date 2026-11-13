@@ -28,11 +28,13 @@ wsl --status
 wsl --list --verbose
 ```
 
-If Microsoft Store access is unavailable and your organization permits a web
-download, use `wsl --update --web-download`. A distribution must show version
-`2` in the list for this guide. Follow Microsoft's [installation guide][install]
-if WSL commands are unavailable. Do not reinstall an existing distribution just
-to apply the settings below.
+If WSL itself needs an update but Microsoft Store access is blocked and your
+organization permits a web download, use `wsl --update --web-download`. That
+command updates the **WSL runtime**; it does not install an Ubuntu distribution.
+Section 3 explains distro-installation recovery. A distribution must show version
+`2` for this guide. Follow Microsoft's [installation guide][install] if WSL
+commands are unavailable. Do not reinstall an existing distribution just to
+apply these settings.
 
 ## 2. Configure WSL2 on Windows
 
@@ -96,22 +98,54 @@ For an existing distro, use its exact name from `wsl --list --verbose`:
 wsl --distribution Ubuntu
 ```
 
-For a new distro, use **PowerShell** to list the available names and install the
-chosen version. Elevate if Windows requests it:
+For a new distro, use **PowerShell** to list the available names and first try
+the supported standard installation. Elevate if Windows requests it:
 
 ```powershell
 wsl --list --online
 wsl --install --distribution Ubuntu-24.04
 ```
 
-Create your normal Linux username and password when prompted. Use the registered
-name `Ubuntu-24.04` in later commands if that is what you installed. If the store
-download fails, Microsoft's installation guide documents the
-`--web-download` alternative.
+On success, create your normal Linux username and password when prompted. Use the
+registered name `Ubuntu-24.04` in later commands if that is what you installed.
 
-### Optional: import an Ubuntu filesystem manually
+### Installation recovery ladder when the normal path fails
 
-Use this only when you need an import or a custom storage location. Download an
+Do **not** unregister or overwrite a working distro. First record the failure
+and check `wsl --list --verbose`: if the distro is already registered, troubleshoot
+or start it rather than repeating an install against the same name. Check
+`wsl --help` for the options supported by your installed WSL version, and obey
+your organization's approved software and storage policies.
+
+**Fallback A — Microsoft Store download is unavailable.** When the organization
+permits Microsoft's web-download source, try:
+
+```powershell
+wsl --install --distribution Ubuntu-24.04 --web-download
+```
+
+This `--web-download` option installs the **distribution**, unlike
+`wsl --update --web-download` in section 1, which updates the runtime.
+
+**Fallback B — the default distribution storage location is unsuitable.**
+When supported by your installed WSL and permitted by IT, choose a **new, empty**
+local directory with sufficient space:
+
+```powershell
+wsl --install --distribution Ubuntu-24.04 --location "C:\WSL\Ubuntu-24.04"
+```
+
+The `--location` option changes the install location; it does not solve an
+unreachable distribution download. If both download and location are problems,
+combine supported options only after checking `wsl --help`. Avoid existing
+distribution directories.
+
+**Fallback C — last-resort manual import of an official Ubuntu root filesystem.**
+Use this when supported installation paths remain unavailable (for example on a
+locked-down corporate machine), or when IT explicitly requires an imported image.
+Obtain an official Ubuntu WSL archive through an approved channel and verify its
+provenance according to organizational policy. The manual import path is a
+**recovery procedure**, not just an optional custom-location feature. Download an
 official Ubuntu WSL root filesystem archive for your CPU architecture from
 [Ubuntu's WSL instructions][ubuntu]. The input to `--import` is a filesystem tar
 archive, possibly compressed, not an Ubuntu installer ISO. Use the actual
@@ -153,8 +187,11 @@ Inside Ubuntu, `whoami` should now show your normal user. Microsoft documents th
 
 ## 4. Prepare Ubuntu for Python development
 
-Run the following **inside Ubuntu as your normal Linux user**. If downloads
-fail, complete the [DNS/VPN guide](wsl_2_dns_fix.md) before retrying.
+Run the following **inside Ubuntu as your normal Linux user**. On a corporate
+network, first review the [proxy and APT preflight](wsl_3_uv_setup.md#verify-proxy-routing-before-installing-packages).
+If routing or DNS fails, follow the [DNS/VPN guide](wsl_2_dns_fix.md).
+If DNS works but `sudo apt update` fails, troubleshoot APT's separate proxy
+configuration rather than changing DNS or disabling TLS verification.
 
 ```bash
 sudo apt update

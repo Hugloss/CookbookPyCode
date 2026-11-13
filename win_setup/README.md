@@ -15,10 +15,12 @@ alternative to test when you need its features.
 | [3. uv, caching, and certificates](wsl_3_uv_setup.md) | Linux uv, a maintained Bash configuration, corporate CA trust, and dependency-download checks. |
 | [4. Reclaim disk space](wsl_4_disk_space.md) | Optional maintenance after deleting data: trim, stop WSL, compact its disk, and measure reclaimed Windows storage. |
 
-The networking profile targets Windows 11 22H2 or newer and updated WSL. The
-`UV_SYSTEM_CERTS` example requires uv 0.11.0 or newer. A new 200 GB virtual disk
-does not occupy 200 GB immediately, and changing the default does not shrink
-existing disks.
+The networking profile targets Windows 11 22H2 or newer and updated WSL. In
+corporate networks, follow the [proxy and APT preflight](wsl_3_uv_setup.md#verify-proxy-routing-before-installing-packages)
+before installing Linux packages or uv. The optional `UV_SYSTEM_CERTS` example
+requires uv 0.11.0 or newer and should be enabled only when system trust is
+needed. A new 200 GB virtual disk does not occupy 200 GB immediately, and
+changing the default does not shrink existing disks.
 
 Other recipes: [pyenv](pyenv.md), [AI package installation](pip.md),
 [npm](npm.md), and [Windows/SUSE certificate examples](ssl_fix.ipynb).
